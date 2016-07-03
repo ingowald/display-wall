@@ -102,8 +102,6 @@ namespace ospray {
     {
       static int frameID = 0;
 
-      sleep(me.rank);
-
       vec2i tileSize(160,10);
       vec2i numTiles = divRoundUp(wallConfig.totalPixels(),tileSize);
       for (int iy=0;iy<numTiles.y;iy++)
