@@ -1,8 +1,11 @@
 #include "../common/MPI.h"
+#include "common/vec.h"
 
 namespace ospray {
   namespace dw {
 
+    using namespace ospcommon;
+    
     using std::cout; 
     using std::endl;
     using std::flush;
@@ -26,6 +29,16 @@ namespace ospray {
     void receiveDisplayConfig(const MPI::Group &display,
                               const MPI::Group &me)
     {
+      vec2i numDisplays;
+      vec2i pixelsPerDisplay;
+      if (me.rank == 0) 
+        cout << "waiting for service to tell us the display wall config..." << endl;
+      MPI_CALL(Bcast(&numDisplays,sizeof(numDisplays),MPI_BYTE,0,display.comm));
+      MPI_CALL(Bcast(&pixelsPerDisplay,sizeof(pixelsPerDisplay),MPI_BYTE,0,display.comm));
+      if (me.rank == 0) {
+        PRINT(numDisplays);
+        PRINT(pixelsPerDisplay);
+      }
     }
 
     /*! establish connection between 'me' and the remote service */

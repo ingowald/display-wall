@@ -16,10 +16,14 @@ namespace ospray {
     // default settings
     bool hasHeadNode = false;
     vec2i windowSize(320,240);
+    vec2i numDisplays(0,0);
 
     void sendConfigToClient(const MPI::Group &outside, const MPI::Group &me)
     {
-      printf("sending config to client ... not yet implemented...\n");
+      MPI_CALL(Bcast(&numDisplays,sizeof(numDisplays),MPI_BYTE,
+                     me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+      MPI_CALL(Bcast(&windowSize,sizeof(windowSize),MPI_BYTE,
+                     me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
     }
 
     MPI::Group waitForConnection(MPI::Group &me)
@@ -49,8 +53,8 @@ namespace ospray {
       MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,me.comm,&outside));
       if (me.rank == 0) {
         printf("communication established...\n");
-        sendConfigToClient(MPI::Group(outside),me);
       }
+      sendConfigToClient(MPI::Group(outside),me);
       me.barrier();
 
       /* and return the inter-communicator to the outside */
@@ -174,7 +178,19 @@ namespace ospray {
         processIncomingTiles(incomingTiles,displayGroup);
       }
     }
-
+    
+    void usage(const std::string &err)
+    {
+      if (!err.empty()) {
+        cout << "Error: " << err << endl << endl;
+      }
+      cout << "usage: ./ospDisplayWald [args]*" << endl << endl;
+      cout << "w/ args: " << endl;
+      cout << "--width|-w <numDisplays.x>     - num displays in x direction" << endl;
+      cout << "--height|-h <numDisplays.y>    - num displays in y direction" << endl;
+      cout << "--[no-]head-node | -[n]hn      - use / do not use dedicated head node" << endl;
+      exit(!err.empty());
+    }
 
     extern "C" int main(int ac, char **av)
     {
@@ -188,10 +204,21 @@ namespace ospray {
           hasHeadNode = true;
         } else if (arg == "--no-head-node" || arg == "-nhn") {
           hasHeadNode = false;
+        } else if (arg == "--width" || arg == "-w") {
+          numDisplays.x = atoi(av[++i]);
+        } else if (arg == "--height" || arg == "-h") {
+          numDisplays.y = atoi(av[++i]);
         } else {
-          throw std::runtime_error("unkonwn arg "+arg);
+          usage("unkonwn arg "+arg);
         } 
       }
+
+      if (numDisplays.x < 1) 
+        usage("no display wall width specified (--width <w>)");
+      if (numDisplays.y < 1) 
+        usage("no display wall height specified (--heigh <h>)");
+      if (world.size != numDisplays.x*numDisplays.y+hasHeadNode)
+        throw std::runtime_error("invalid number of ranks for given display/head node config");
 
       const char *title = "display wall window";
       GlutWindow glutWindow(windowSize,title);
