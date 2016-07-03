@@ -10,6 +10,7 @@ INCLUDE(${PROJECT_SOURCE_DIR}/cmake/glut.cmake)
 ADD_EXECUTABLE(ospDisplayWald
   main.cpp
   GlutWindow.cpp
+  Dispatcher.cpp
   )
 
 TARGET_LINK_LIBRARIES(ospDisplayWald

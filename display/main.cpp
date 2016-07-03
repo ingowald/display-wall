@@ -11,38 +11,52 @@ namespace ospray {
     using std::endl;
     using std::flush;
 
+    std::string portNameFile = "~/.ospDisplayWald.port";
+
     // default settings
     bool hasHeadNode = false;
     vec2i windowSize(320,240);
 
-    MPI::Group waitForConnection(MPI::Group &inside)
+    void sendConfigToClient(const MPI::Group &outside, const MPI::Group &me)
     {
-      PING;
-      return MPI::Group();
-    };
-    
-    void runDispatcher(MPI::Group &outside,
-                       MPI::Group &displays)
-    {
-      // std::thread *dispatcherThread = new std::thread([=]() {
-      std::cout << "Running the dispatcher thread ..." << std::endl;
-      PRINT(outside.size);
-      PRINT(displays.size);
-      while (1) {
-        throw std::runtime_error("not implemented");
-        // MPI_Status status;
-        // MPI_CALL(Probe(MPI_ANY_SOURCE,MPI_ANY_TAG,outside.comm,&status));
-        // cout << "incoming from " << status.MPI_SOURCE << flush;
-        // int numBytes;
-        // MPI_CALL(Get_count(&status,MPI_BYTE,&numBytes));
-        // cout << "... has " << numBytes << " bytes" << endl;
-
-        // char buf[numBytes];
-        // MPI_CALL(Recv(buf,numBytes,MPI_BYTE,status.MPI_SOURCE,status.MPI_TAG,
-        //               outside.comm,&status));
-      };
-      // });
+      printf("sending config to client ... not yet implemented...\n");
     }
+
+    MPI::Group waitForConnection(MPI::Group &me)
+    {
+      MPI_Comm outside;
+      me.barrier();
+      printf("outward facing rank %i/%i waiting for outside connection\n",
+             me.rank,me.size);
+      me.barrier();
+
+      char portName[MPI_MAX_PORT_NAME];
+      if (me.rank == 0) {
+        MPI_CALL(Open_port(MPI_INFO_NULL,portName));
+        printf("diplay wald waiting for connection on MPI port %s\n",
+               portName);
+      }
+      MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,me.comm,&outside));
+      if (me.rank == 0) {
+        printf("communication established...\n");
+        sendConfigToClient(MPI::Group(outside),me);
+        FILE *file = fopen(portNameFile.c_str(),"w");
+        if (!file) 
+          throw std::runtime_error("could not open "+portNameFile+
+                                   " for writing port name");
+        fprintf(file,"%s",portName);
+        fclose(file);
+        printf("port name writtten to %s\n",portNameFile.c_str());
+      }
+      me.barrier();
+      return MPI::Group(outside);
+    };
+
+    /*! in dispather.cpp - the dispatcher that receives tiles on the
+        head node, and then dispatches them to the actual tile
+        receivers */
+    void runDispatcher(MPI::Group &outside,
+                       MPI::Group &displays);
 
     struct CompressedTile {
       CompressedTile() : fromRank(-1), numBytes(-1), data(NULL) {}
@@ -57,11 +71,13 @@ namespace ospray {
       int numBytes;
 
       /*! receive one tile from the outside communicator */
-      void receiveOne(MPI::Group &inside, MPI::Group &outside);
+      void receiveOne(MPI::Group &outside, MPI::Group &me);
     };
     
     void CompressedTile::receiveOne(MPI::Group &outside, MPI::Group &me)
     {
+      PING;
+      printf("receiveone me %i/%i outside %i/%i\n",me.rank,me.size,outside.rank,outside.size);
       MPI_Status status;
       MPI_CALL(Probe(MPI_ANY_SOURCE,MPI_ANY_TAG,outside.comm,&status));
       fromRank = status.MPI_SOURCE;
@@ -159,7 +175,6 @@ namespace ospray {
     {
       glutInit(&ac, (char **) av);
       MPI::init(ac,av);
-      std::string connectToPort = "";
       MPI::Group world(MPI_COMM_WORLD);
 
       for (int i=1;i<ac;i++) {
@@ -168,9 +183,9 @@ namespace ospray {
           hasHeadNode = true;
         } else if (arg == "--no-head-node" || arg == "-nhn") {
           hasHeadNode = false;
-        } else if (arg[0] == '-') {
+        } else {
           throw std::runtime_error("unkonwn arg "+arg);
-        } else connectToPort = arg;
+        } 
       }
 
       const char *title = "display wall window";
