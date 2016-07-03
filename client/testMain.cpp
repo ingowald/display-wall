@@ -62,7 +62,7 @@ namespace ospray {
                   const vec2i &begin, 
                   const vec2i &end, 
                   int pitch,
-                  const uint32 *pixel)
+                  const uint32_t *pixel)
     {
       int numInts = 4+(end-begin).product();
       int *buffer = new int[numInts];
@@ -91,7 +91,9 @@ namespace ospray {
       // -------------------------------------------------------
       for (int dy=affectedDisplay_begin.y;dy<affectedDisplay_begin.y;dy++)
         for (int dx=affectedDisplay_begin.x;dx<affectedDisplay_begin.x;dx++) {
-          MPI_CALL(Send(buffer,numInts*sizeof(int),MPI_BYTE,0,0,display.comm));
+          int targetRank = wallConfig.rankOfDisplay(vec2i(dx,dy));
+          MPI_CALL(Send(buffer,numInts*sizeof(int),MPI_BYTE,targetRank,0,
+                        display.comm));
         }
       delete [] buffer;
     }
@@ -111,7 +113,7 @@ namespace ospray {
             continue;
           vec2i lo = vec2i(ix,iy)*tileSize;
           vec2i hi = min(lo+tileSize,wallConfig.totalPixels());
-          uint32 *pixel = new uint32[tileSize.x*tileSize.y];
+          uint32_t *pixel = new uint32_t[tileSize.x*tileSize.y];
           sendTile(display,wallConfig,lo,hi,tileSize.x,pixel);
           delete[] pixel;
         }

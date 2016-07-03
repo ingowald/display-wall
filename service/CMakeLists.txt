@@ -13,7 +13,7 @@ ADD_EXECUTABLE(ospDisplayWald
   )
 
 TARGET_LINK_LIBRARIES(ospDisplayWald
-  ${MPI_CXX_LIBRARIES}
+  ospray_dw_common
   ${OPENGL_LIBRARIES}
   ${GLUT_LIBRARIES}
   )
