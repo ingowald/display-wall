@@ -1,5 +1,6 @@
 #include "../common/MPI.h"
 #include "../common/WallConfig.h"
+#include "../common/CompressedTile.h"
 
 namespace ospray {
   namespace dw {
@@ -59,43 +60,23 @@ namespace ospray {
 
     void sendTile(const MPI::Group &display,
                   const WallConfig &wallConfig,
-                  const vec2i &begin, 
-                  const vec2i &end, 
-                  int pitch,
-                  const uint32_t *pixel)
+                  const PlainTile &tile)
     {
-      int numInts = 4+(end-begin).product();
-      int *buffer = new int[numInts];
-      int *write = buffer;
-      *write++ = begin.x;
-      *write++ = begin.y;
-      *write++ = end.x;
-      *write++ = end.y;
-
-      const int *line = (const int *)pixel;
-      for (int iy=begin.y;iy<end.y;iy++) {
-        const int *in = line;
-        for (int ix=begin.x;ix<end.x;ix++)
-          *write++ = *line++;
-        line += pitch;
-      }
+      CompressedTile encoded;
+      encoded.encode(tile);
 
       // -------------------------------------------------------
       // compute displays affected by this tile
       // -------------------------------------------------------
-      vec2i affectedDisplay_begin = begin / wallConfig.pixelsPerDisplay;
-      vec2i affectedDisplay_end = divRoundUp(end,wallConfig.pixelsPerDisplay);
+      vec2i affectedDisplay_begin = tile.region.lower / wallConfig.pixelsPerDisplay;
+      vec2i affectedDisplay_end = divRoundUp(tile.region.upper,wallConfig.pixelsPerDisplay);
 
       // -------------------------------------------------------
       // now, send to all affected displays ...
       // -------------------------------------------------------
       for (int dy=affectedDisplay_begin.y;dy<affectedDisplay_begin.y;dy++)
-        for (int dx=affectedDisplay_begin.x;dx<affectedDisplay_begin.x;dx++) {
-          int targetRank = wallConfig.rankOfDisplay(vec2i(dx,dy));
-          MPI_CALL(Send(buffer,numInts*sizeof(int),MPI_BYTE,targetRank,0,
-                        display.comm));
-        }
-      delete [] buffer;
+        for (int dx=affectedDisplay_begin.x;dx<affectedDisplay_begin.x;dx++) 
+          encoded.sendTo(display,wallConfig.rankOfDisplay(vec2i(dx,dy)));;
     }
 
     void renderFrame(const WallConfig &wallConfig, 
@@ -106,16 +87,19 @@ namespace ospray {
 
       vec2i tileSize(160,10);
       vec2i numTiles = divRoundUp(wallConfig.totalPixels(),tileSize);
+      PlainTile tile;
       for (int iy=0;iy<numTiles.y;iy++)
         for (int ix=0;ix<numTiles.x;ix++) {
           int tileID = ix + numTiles.x * iy;
           if ((tileID % me.size) != me.rank)
             continue;
-          vec2i lo = vec2i(ix,iy)*tileSize;
-          vec2i hi = min(lo+tileSize,wallConfig.totalPixels());
-          uint32_t *pixel = new uint32_t[tileSize.x*tileSize.y];
-          sendTile(display,wallConfig,lo,hi,tileSize.x,pixel);
-          delete[] pixel;
+          tile.region.lower = vec2i(ix,iy)*tileSize;
+          tile.region.upper = min(tile.region.lower+tileSize,wallConfig.totalPixels());
+          tile.frameID = frameID;
+          tile.pixel = new uint32_t[tileSize.x*tileSize.y];
+          sendTile(display,wallConfig,tile);
+
+          delete[] tile.pixel;
         }
       
       ++frameID;

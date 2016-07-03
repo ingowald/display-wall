@@ -8,37 +8,38 @@ namespace ospray {
 
     using namespace ospcommon;
 
+    /*! a plain, uncompressed tile */
+    struct PlainTile 
+    {
+      /*! region of pixels that this tile corresponds to */
+      box2i region;
+      /*! guess... */
+      int frameID;
+      /*! number of ints in pixel[] buffer from one y to y+1 */
+      int pitch;
+      /*! pointer to buffer of pixels; this buffer is 'pitch' int-sized pixels wide */
+      uint32_t *pixel;
+    };
+
+    /*! encoded representation of a tile - eventually to use true
+        compression; for now we just pack all pixels (and header) into
+        a single linear array of ints */
     struct CompressedTile {
-      CompressedTile() : fromRank(-1), numBytes(-1), data(NULL) {}
-      ~CompressedTile() { if (data) delete[] data; }
-      struct Header {
-        box2i region;
-        int32_t frameID;
-        char payload[0];
-      };
-      char *data;
+      CompressedTile();
+      ~CompressedTile();
+
+      unsigned char *data;
       int fromRank;
       int numBytes;
 
+      /*! send the tile to the given rank in the given group */
+      void sendTo(const MPI::Group &outside, const int targetRank) const;
+
       /*! receive one tile from the outside communicator */
       void receiveOne(MPI::Group &outside, MPI::Group &me);
+      void encode(const PlainTile &tile);
     };
-    
-    void CompressedTile::receiveOne(MPI::Group &outside, MPI::Group &me)
-    {
-      PING;
-      printf("receiveone me %i/%i outside %i/%i\n",me.rank,me.size,outside.rank,outside.size);
-      MPI_Status status;
-      MPI_CALL(Probe(MPI_ANY_SOURCE,MPI_ANY_TAG,outside.comm,&status));
-      fromRank = status.MPI_SOURCE;
-      MPI_CALL(Get_count(&status,MPI_BYTE,&numBytes));        
-      printf("%i/%i incoming from %i, %i bytes\n",me.rank,me.size,
-             status.MPI_SOURCE,numBytes);
-      data = new char[numBytes];
-      MPI_CALL(Recv(data,numBytes,MPI_BYTE,status.MPI_SOURCE,status.MPI_TAG,
-                    outside.comm,&status));
-    }
-    
 
+    
   } // ::ospray::dw
 } // ::ospray
