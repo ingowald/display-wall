@@ -20,10 +20,20 @@ namespace ospray {
 
     void sendConfigToClient(const MPI::Group &outside, const MPI::Group &me)
     {
-      MPI_CALL(Bcast(&numDisplays,sizeof(numDisplays),MPI_BYTE,
-                     me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
-      MPI_CALL(Bcast(&windowSize,sizeof(windowSize),MPI_BYTE,
-                     me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+      if (me.size == 1) {
+        // we're the head node running a dispatcher - send a fake 'single display'
+        vec2i fake_windowSize = numDisplays*windowSize;
+        vec2i fake_numDisplays = vec2i(1);
+        MPI_CALL(Bcast(&fake_numDisplays,sizeof(fake_numDisplays),MPI_BYTE,
+                       me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+        MPI_CALL(Bcast(&fake_windowSize,sizeof(fake_windowSize),MPI_BYTE,
+                       me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+      } else {
+        MPI_CALL(Bcast(&numDisplays,sizeof(numDisplays),MPI_BYTE,
+                       me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+        MPI_CALL(Bcast(&windowSize,sizeof(windowSize),MPI_BYTE,
+                       me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+      }
     }
 
     MPI::Group waitForConnection(MPI::Group &me)

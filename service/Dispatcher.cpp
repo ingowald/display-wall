@@ -18,6 +18,7 @@ namespace ospray {
       PRINT(outside.size);
       PRINT(displays.size);
       while (1) {
+        sleep(10);
         throw std::runtime_error("not implemented");
         // MPI_Status status;
         // MPI_CALL(Probe(MPI_ANY_SOURCE,MPI_ANY_TAG,outside.comm,&status));
