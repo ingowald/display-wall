@@ -5,7 +5,6 @@ namespace ospray {
 
     struct CompressedTileHeader {
       box2i region;
-      int32_t frameID;
       unsigned char payload[0];
     };
 
@@ -25,7 +24,7 @@ namespace ospray {
       const vec2i begin = tile.region.lower;
       const vec2i end = tile.region.upper;
 
-      int numInts = 5+(end-begin).product();
+      int numInts = 4+(end-begin).product();
       assert(this->data = NULL);
       this->numBytes = numInts*sizeof(int);
       this->data = new unsigned char[this->numBytes];
@@ -34,7 +33,6 @@ namespace ospray {
       *write++ = begin.y;
       *write++ = end.x;
       *write++ = end.y;
-      *write++ = tile.frameID;
       const int *line = (const int *)tile.pixel;
       for (int iy=begin.y;iy<end.y;iy++) {
         const int *in = line;
