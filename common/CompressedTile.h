@@ -32,11 +32,14 @@ namespace ospray {
       int fromRank;
       int numBytes;
 
+      /*! get region that this tile corresponds to */
+      box2i getRegion() const;
+
       /*! send the tile to the given rank in the given group */
       void sendTo(const MPI::Group &outside, const int targetRank) const;
 
       /*! receive one tile from the outside communicator */
-      void receiveOne(MPI::Group &outside, MPI::Group &me);
+      void receiveOne(const MPI::Group &outside); 
       void encode(const PlainTile &tile);
     };
 

@@ -1,5 +1,3 @@
-#pragma once
-
 #include "WallConfig.h"
 
 namespace ospray {

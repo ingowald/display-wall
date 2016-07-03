@@ -44,23 +44,30 @@ namespace ospray {
       }
     }
 
+    /*! get region that this tile corresponds to */
+    box2i CompressedTile::getRegion() const
+    {
+      const CompressedTileHeader *header = (const CompressedTileHeader *)data;
+      assert(header);
+      return header->region;
+    }
+    
     /*! send the tile to the given rank in the given group */
     void CompressedTile::sendTo(const MPI::Group &group, const int rank) const
     {
+      PING;
       MPI_CALL(Send(data,numBytes,MPI_BYTE,rank,0,group.comm));
     }
 
     /*! receive one tile from the outside communicator */
-    void CompressedTile::receiveOne(MPI::Group &outside, MPI::Group &me)
+    void CompressedTile::receiveOne(const MPI::Group &outside)
     {
-      PING;
-      printf("receiveone me %i/%i outside %i/%i\n",me.rank,me.size,outside.rank,outside.size);
+      printf("receiveone from outside %i/%i\n",outside.rank,outside.size);
       MPI_Status status;
       MPI_CALL(Probe(MPI_ANY_SOURCE,MPI_ANY_TAG,outside.comm,&status));
       fromRank = status.MPI_SOURCE;
       MPI_CALL(Get_count(&status,MPI_BYTE,&numBytes));        
-      printf("%i/%i incoming from %i, %i bytes\n",me.rank,me.size,
-             status.MPI_SOURCE,numBytes);
+      printf("incoming from %i, %i bytes\n",status.MPI_SOURCE,numBytes);
       data = new unsigned char[numBytes];
       MPI_CALL(Recv(data,numBytes,MPI_BYTE,status.MPI_SOURCE,status.MPI_TAG,
                     outside.comm,&status));

@@ -1,6 +1,7 @@
 
 #include "../common/MPI.h"
 #include "../common/CompressedTile.h"
+#include "../common/WallConfig.h"
 #include "GlutWindow.h"
 //#include "ospray/common/Thread.h"
 #include <thread>
@@ -75,8 +76,9 @@ namespace ospray {
     /*! in dispather.cpp - the dispatcher that receives tiles on the
         head node, and then dispatches them to the actual tile
         receivers */
-    void runDispatcher(MPI::Group &outside,
-                       MPI::Group &displays);
+    void runDispatcher(const MPI::Group &outside,
+                       const MPI::Group &displays,
+                       const WallConfig &wallConfig);
 
     void processIncomingTiles(MPI::Group &outside,MPI::Group &me)
     {
@@ -86,13 +88,14 @@ namespace ospray {
         // receive one tiles
         // -------------------------------------------------------
         CompressedTile tile;
-        tile.receiveOne(outside,me);
+        tile.receiveOne(outside);
         throw std::runtime_error("need to decode tile here ... ");
       }
     }
 
     /*! note: this runs in its own thread */
     void setupCommunications(GlutWindow *window,
+                             const WallConfig &wallConfig,
                              bool hasHeadNode,
                              MPI::Group &world)
     {
@@ -142,7 +145,7 @@ namespace ospray {
           // DISPATCHER
           // =======================================================
           MPI::Group outsideConnection = waitForConnection(dispatchGroup);
-          runDispatcher(outsideConnection,displayGroup);
+          runDispatcher(outsideConnection,displayGroup,wallConfig);
         } else {
           // =======================================================
           // TILE RECEIVER
@@ -199,6 +202,7 @@ namespace ospray {
         usage("no display wall height specified (--heigh <h>)");
       if (world.size != numDisplays.x*numDisplays.y+hasHeadNode)
         throw std::runtime_error("invalid number of ranks for given display/head node config");
+      WallConfig wallConfig(numDisplays,windowSize);
 
       const char *title = "display wall window";
       GlutWindow glutWindow(windowSize,title);
@@ -210,7 +214,7 @@ namespace ospray {
       }
       
       std::thread commThread([&]() {
-          setupCommunications(&glutWindow,hasHeadNode,world);
+          setupCommunications(&glutWindow,wallConfig,hasHeadNode,world);
         });
 
       if (hasHeadNode && world.rank == 0) {

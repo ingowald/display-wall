@@ -71,12 +71,16 @@ namespace ospray {
       vec2i affectedDisplay_begin = tile.region.lower / wallConfig.pixelsPerDisplay;
       vec2i affectedDisplay_end = divRoundUp(tile.region.upper,wallConfig.pixelsPerDisplay);
 
+      PRINT(affectedDisplay_begin);
+      PRINT(affectedDisplay_end);
       // -------------------------------------------------------
       // now, send to all affected displays ...
       // -------------------------------------------------------
-      for (int dy=affectedDisplay_begin.y;dy<affectedDisplay_begin.y;dy++)
-        for (int dx=affectedDisplay_begin.x;dx<affectedDisplay_begin.x;dx++) 
-          encoded.sendTo(display,wallConfig.rankOfDisplay(vec2i(dx,dy)));;
+      for (int dy=affectedDisplay_begin.y;dy<affectedDisplay_end.y;dy++)
+        for (int dx=affectedDisplay_begin.x;dx<affectedDisplay_end.x;dx++) {
+          PRINT(vec2i(dx,dy)); fflush(0);
+          encoded.sendTo(display,wallConfig.rankOfDisplay(vec2i(dx,dy)));
+        }
     }
 
     void renderFrame(const WallConfig &wallConfig, 
