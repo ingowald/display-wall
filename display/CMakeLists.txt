@@ -4,7 +4,6 @@
 
 # if mpi mode is enabled, we have to configure the right mpi
 # compiler etc.
-CONFIGURE_MPI()
 INCLUDE(${PROJECT_SOURCE_DIR}/cmake/glut.cmake)
 
 ADD_EXECUTABLE(ospDisplayWald

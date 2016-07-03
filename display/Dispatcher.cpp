@@ -1,4 +1,4 @@
-#include "MPI.h"
+#include "../common/MPI.h"
 
 namespace ospray {
   namespace dw {

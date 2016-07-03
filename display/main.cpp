@@ -1,5 +1,5 @@
 
-#include "MPI.h"
+#include "../common/MPI.h"
 #include "GlutWindow.h"
 //#include "ospray/common/Thread.h"
 #include <thread>
@@ -11,7 +11,7 @@ namespace ospray {
     using std::endl;
     using std::flush;
 
-    std::string portNameFile = "~/.ospDisplayWald.port";
+    std::string portNameFile = ".ospDisplayWald.port";
 
     // default settings
     bool hasHeadNode = false;
@@ -30,16 +30,12 @@ namespace ospray {
              me.rank,me.size);
       me.barrier();
 
+      /* open a port, and publish its name */
       char portName[MPI_MAX_PORT_NAME];
       if (me.rank == 0) {
         MPI_CALL(Open_port(MPI_INFO_NULL,portName));
         printf("diplay wald waiting for connection on MPI port %s\n",
                portName);
-      }
-      MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,me.comm,&outside));
-      if (me.rank == 0) {
-        printf("communication established...\n");
-        sendConfigToClient(MPI::Group(outside),me);
         FILE *file = fopen(portNameFile.c_str(),"w");
         if (!file) 
           throw std::runtime_error("could not open "+portNameFile+
@@ -48,7 +44,16 @@ namespace ospray {
         fclose(file);
         printf("port name writtten to %s\n",portNameFile.c_str());
       }
+      
+      /* accept / wait for outside connection on this port */
+      MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,me.comm,&outside));
+      if (me.rank == 0) {
+        printf("communication established...\n");
+        sendConfigToClient(MPI::Group(outside),me);
+      }
       me.barrier();
+
+      /* and return the inter-communicator to the outside */
       return MPI::Group(outside);
     };
 

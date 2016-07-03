@@ -36,7 +36,6 @@ namespace ospray {
         {}
 
         Group dup() {
-          PING;
           MPI_Comm newComm;
           MPI_CALL(Comm_dup(comm,&newComm));
           return Group(newComm);
@@ -55,7 +54,7 @@ namespace ospray {
           }
         }
 
-        void barrier() { MPI_CALL(Barrier(comm)); }
+        void barrier() const { MPI_CALL(Barrier(comm)); }
         MPI_Comm comm;
         int rank, size;
         int isInter;
