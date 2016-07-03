@@ -2,7 +2,7 @@
 
 // ospray
 #include "ospray/ospray.h"
-#include "common/vec.h"
+#include "common/box.h"
 
 namespace ospray {
   using namespace ospcommon;

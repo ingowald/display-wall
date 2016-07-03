@@ -10,7 +10,13 @@ namespace ospray {
         title(title),
         windowID(-1),
         fb(NULL),
-        stereo(stereo)
+        stereo(stereo),
+        receivedFrameID(-1),
+        displayedFrameID(-1)
+    {
+    }
+
+    void GlutWindow::create()
     {
       if (singleton != NULL)
         throw std::runtime_error("can only have one active GlutWindow right now ....");
@@ -30,24 +36,23 @@ namespace ospray {
 
     void GlutWindow::setFrameBuffer(FrameBuffer *fb)
     {
-      mutex.lock();
+      std::lock_guard<std::mutex> lock(mutex);
       this->fb = fb;
-      mutex.unlock();
+      receivedFrameID++;
+      newFrameAvail.notify_one();
     }
 
     void GlutWindow::glutIdle() 
     { 
-      usleep(1000); 
+      // usleep(1000); 
       glutPostRedisplay(); 
     }
 
     void GlutWindow::display() 
     {
-      static int frameID = 0;
-      mutex.lock();
-      printf("displaying frame %i\n",++frameID);
-      mutex.unlock();
-
+      std::unique_lock<std::mutex> lock(mutex);
+      newFrameAvail.wait(lock,[this](){return receivedFrameID > displayedFrameID; });
+      
       if (!fb) {
         // printf("no frame buffer set, yet\n");
       } else if (stereo) {
@@ -55,7 +60,7 @@ namespace ospray {
         glDrawBuffer(GL_BACK_LEFT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, fb->pixels[0]);
-
+        
         assert(fb->pixel[1]);
         glDrawBuffer(GL_BACK_RIGHT); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -66,7 +71,7 @@ namespace ospray {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, fb->pixels[0]);
       }
-
+      
       glutSwapBuffers();
     }
 
