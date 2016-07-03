@@ -28,7 +28,7 @@ namespace ospray {
       assert(this->data = NULL);
       this->numBytes = numInts*sizeof(int);
       this->data = new unsigned char[this->numBytes];
-      int *write = (int *)this->data;
+      int *write = (int *)(this->data+sizeof(CompressedTileHeader));
       *write++ = begin.x;
       *write++ = begin.y;
       *write++ = end.x;
@@ -40,6 +40,23 @@ namespace ospray {
           *write++ = *line++;
         line += tile.pitch;
       }
+    }
+
+    void CompressedTile::decode(PlainTile &tile)
+    {
+      const CompressedTileHeader *header = (const CompressedTileHeader *)data;
+      tile.region = header->region;
+      vec2i size = tile.region.upper-tile.region.lower;
+      tile.pitch = size.x;
+      int numInts = size.x*size.y;
+      assert(tile.pixel == NULL);
+      tile.pixel = new uint32_t[numInts];
+      uint32_t *out = tile.pixel;
+      uint32_t *in = (uint32_t *)(data+sizeof(CompressedTileHeader));
+      for (int iy=0;iy<size.y;iy++)
+        for (int ix=0;ix<size.x;ix++) {
+          *out++ = *in++;
+        }
     }
 
     /*! get region that this tile corresponds to */

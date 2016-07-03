@@ -39,6 +39,7 @@ namespace ospray {
       /*! receive one tile from the outside communicator */
       void receiveOne(const MPI::Group &outside); 
       void encode(const PlainTile &tile);
+      void decode(PlainTile &tile);
     };
 
     

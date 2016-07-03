@@ -65,10 +65,12 @@ namespace ospray {
       me.barrier();
     }
 
-    vec2i Client::totalPixelsInWall() const {
+    vec2i Client::totalPixelsInWall() const 
+    {
       assert(wallConfig);
       return wallConfig->totalPixels();
     }
+
     void Client::writeTile(const PlainTile &tile)
     {
       assert(wallConfig);
@@ -80,7 +82,8 @@ namespace ospray {
       // compute displays affected by this tile
       // -------------------------------------------------------
       vec2i affectedDisplay_begin = tile.region.lower / wallConfig->pixelsPerDisplay;
-      vec2i affectedDisplay_end = divRoundUp(tile.region.upper,wallConfig->pixelsPerDisplay);
+      vec2i affectedDisplay_end = divRoundUp(tile.region.upper,
+                                             wallConfig->pixelsPerDisplay);
 
       // -------------------------------------------------------
       // now, send to all affected displays ...

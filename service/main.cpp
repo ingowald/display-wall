@@ -80,18 +80,7 @@ namespace ospray {
                        const MPI::Group &displays,
                        const WallConfig &wallConfig);
 
-    void processIncomingTiles(MPI::Group &outside,MPI::Group &me)
-    {
-      cout << "running tile receiver ..." << endl;
-      while (1) {
-        // -------------------------------------------------------
-        // receive one tiles
-        // -------------------------------------------------------
-        CompressedTile tile;
-        tile.receiveOne(outside);
-        throw std::runtime_error("need to decode tile here ... ");
-      }
-    }
+    void processIncomingTiles(MPI::Group &outside,MPI::Group &me);
 
     /*! note: this runs in its own thread */
     void setupCommunications(GlutWindow *window,
