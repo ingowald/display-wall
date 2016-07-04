@@ -1,10 +1,6 @@
 
-#include "../common/MPI.h"
+#include "Server.h"
 #include "../common/CompressedTile.h"
-#include "../common/WallConfig.h"
-#include "GlutWindow.h"
-//#include "ospray/common/Thread.h"
-#include <thread>
 
 namespace ospray {
   namespace dw {

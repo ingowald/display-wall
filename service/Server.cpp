@@ -1,3 +1,25 @@
+/* 
+Copyright (c) 2016 Ingo Wald
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
 #include "Server.h"
 #include "../common/CompressedTile.h"
 
@@ -10,11 +32,11 @@ namespace ospray {
 
     std::string portNameFile = ".ospDisplayWald.port";
 
-    // default settings
-    // bool hasHeadNode = false;
-    // vec2i windowSize(320,240);
-    // vec2i numDisplays(0,0);
+    Server *Server::singleton = NULL;
 
+    /*! send the display wall config to the client, so the client will
+        known both display arrayngement and total frame buffer
+        config */
     void sendConfigToClient(const MPI::Group &outside, 
                             const MPI::Group &me,
                             const WallConfig &wallConfig)
@@ -39,6 +61,11 @@ namespace ospray {
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
     }
 
+    /*! open an MPI port and wait for the client(s) to connect to this
+        port after this function terminates, all outward facing procs
+        (either the head node, or all display nodes if no head node is
+        being used) should have an proper MPI communicator set up to
+        talk to the client rank(s) */
     MPI::Group waitForConnection(MPI::Group &me, const WallConfig &wallConfig)
     {
       MPI_Comm outside;
@@ -59,7 +86,7 @@ namespace ospray {
                                    " for writing port name");
         fprintf(file,"%s",portName);
         fclose(file);
-        printf("port name writtten to %s\n",portNameFile.c_str());
+        printf("port name written to %s\n",portNameFile.c_str());
       }
       
       /* accept / wait for outside connection on this port */
@@ -88,7 +115,6 @@ namespace ospray {
                              bool hasHeadNode,
                              const MPI::Group &world)
     {
-      PING;
       // =======================================================
       /* create inter- and intra-comms to communicate between displays
          and, if applicable, the dispathcer running ont he head
@@ -99,16 +125,12 @@ namespace ospray {
       // intracomm if this is a display node, or a intracomm if this
       // is the head node
       MPI::Group displayGroup;
-      PING;
       // intercomm to the dispatcher, if this is a display node;
       // intracomm containing onyl the dispatche3r node if one exists,
       // or invalid if we're not running w/ a head node.
-      PING;
       MPI::Group dispatchGroup;
-      PING;
 
       if (hasHeadNode) {
-      PING;
         MPI_Comm intraComm, interComm;
         MPI_CALL(Comm_split(world.comm,1+(world.rank>0),world.rank,&intraComm));
         
@@ -117,7 +139,6 @@ namespace ospray {
           MPI_Intercomm_create(intraComm,0,world.comm, 1, 1, &interComm); 
           displayGroup = MPI::Group(interComm);
         } else {
-      PING;
           displayGroup = MPI::Group(intraComm);
           MPI_Intercomm_create(intraComm,0,world.comm, 0, 1, &interComm); 
           // PRINT(interComm);
@@ -126,14 +147,11 @@ namespace ospray {
       } else {
         displayGroup = world.dup();
       }
-      PING;
       printf("world rank %i/%i: dispatcher rank %i/%i, display rank %i/%i\n",
              world.rank,world.size,
              dispatchGroup.rank,dispatchGroup.size,
              displayGroup.rank,displayGroup.size);
       MPI_CALL(Barrier(world.comm));
-
-
 
       if (hasHeadNode) {
         if (world.rank == 0) {
@@ -167,21 +185,38 @@ namespace ospray {
                                  DisplayCallback displayCallback,
                                  void *objectForCallback)
     {
-      MPI::Group world(comm);
-      MPI::Group me = world.dup();
-      ospray::dw::displayCallback = displayCallback;
-      ospray::dw::objectForCallback = objectForCallback;
-      std::thread *commThread = new std::thread([=]() {
-          PING;
+      assert(Server::singleton == NULL);
+      Server::singleton = new Server(MPI::Group(comm),wallConfig,hasHeadNode,
+                                     displayCallback,objectForCallback);
+    }
+
+    Server::Server(const MPI::Group &world,
+                   const WallConfig &wallConfig,
+                   const bool hasHeadNode,
+                   DisplayCallback displayCallback,
+                   void *objectForCallback)
+      : me(me.dup()),
+        wallConfig(wallConfig),
+        hasHeadNode(hasHeadNode),
+        displayCallback(displayCallback),
+        objectForCallback(objectForCallback),
+        commThread(NULL)
+    {
+      // MPI::Group world(comm);
+      // MPI::Group me = world.dup();
+      // ospray::dw::displayCallback = displayCallback;
+      // ospray::dw::objectForCallback = objectForCallback;
+      commThread = new std::thread([=]() {
           setupCommunications(wallConfig,hasHeadNode,me);
         });
-
+      
       if (hasHeadNode && me.rank == 0) {
         /* if this is the head node we wait here until everything is
            done; this prevents the comm thread from dying when we
            return to main - unlike other ranks the head node will NOT
            open a window and enter a windowing loop.... */
         commThread->join();
+        delete commThread;
       }
       /* MIGHT want to wait for threads to be started here  */
 
