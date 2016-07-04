@@ -11,6 +11,7 @@ ADD_EXECUTABLE(ospDisplayWald
   GlutWindow.cpp
   Dispatcher.cpp
 	processIncomingTiles.cpp
+	Server.cpp
   )
 
 TARGET_LINK_LIBRARIES(ospDisplayWald

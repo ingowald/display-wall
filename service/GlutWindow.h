@@ -17,7 +17,8 @@ namespace ospray {
     struct GlutWindow 
     {
       GlutWindow(const vec2i &size, const std::string &title, bool stereo=false);
-      void setFrameBuffer(FrameBuffer *fb);
+      void setFrameBuffer(const uint32_t *leftEye,
+                          const uint32_t *rightEye);
       void display(); 
       vec2i getSize()   const;
       bool doesStereo() const;
@@ -28,7 +29,8 @@ namespace ospray {
       static void glutDisplay();
       
     private:
-      FrameBuffer *fb;
+      const uint32_t *leftEye;
+      const uint32_t *rightEye;
       std::mutex mutex;
       std::condition_variable newFrameAvail;
 

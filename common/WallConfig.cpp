@@ -3,10 +3,18 @@
 namespace ospray {
   namespace dw {
 
-    WallConfig::WallConfig(const vec2i &numDisplays, const vec2i &pixelsPerDisplay)
+    WallConfig::WallConfig(const vec2i &numDisplays, 
+                           const vec2i &pixelsPerDisplay,
+                           const DisplayArrangement displayArrangement,
+                           const bool stereo)
       : numDisplays(numDisplays),
-        pixelsPerDisplay(pixelsPerDisplay)
-    {}
+        pixelsPerDisplay(pixelsPerDisplay),
+        displayArrangement(displayArrangement),
+        stereo(stereo)
+    {
+      if (displayArrangement != Arrangement_xy)
+        throw std::runtime_error("non-default arrangments of displays not yet implemented");
+    }
     
     int    WallConfig::rankOfDisplay(const vec2i &displayID) const 
     {

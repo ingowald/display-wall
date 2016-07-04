@@ -9,7 +9,6 @@ namespace ospray {
     using std::endl;
     using std::flush;
 
-
     std::string portNameFile = ".ospDisplayWald.port";
     
     Client::Client(const MPI::Group &me,
@@ -40,11 +39,17 @@ namespace ospray {
     {
       vec2i numDisplays;
       vec2i pixelsPerDisplay;
+      int arrangement;
+      int stereo;
       if (me.rank == 0) 
         cout << "waiting for service to tell us the display wall config..." << endl;
-      MPI_CALL(Bcast(&numDisplays,sizeof(numDisplays),MPI_BYTE,0,displayGroup.comm));
-      MPI_CALL(Bcast(&pixelsPerDisplay,sizeof(pixelsPerDisplay),MPI_BYTE,0,displayGroup.comm));
-      wallConfig = new WallConfig(numDisplays,pixelsPerDisplay);
+      MPI_CALL(Bcast(&numDisplays,2,MPI_INT,0,displayGroup.comm));
+      MPI_CALL(Bcast(&pixelsPerDisplay,2,MPI_INT,0,displayGroup.comm));
+      MPI_CALL(Bcast(&arrangement,1,MPI_INT,0,displayGroup.comm));
+      MPI_CALL(Bcast(&stereo,1,MPI_INT,0,displayGroup.comm));
+      wallConfig = new WallConfig(numDisplays,pixelsPerDisplay,
+                                  (WallConfig::DisplayArrangement)arrangement,
+                                  stereo);
     }
 
     /*! establish connection between 'me' and the remote service */

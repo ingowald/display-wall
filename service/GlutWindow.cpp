@@ -9,7 +9,8 @@ namespace ospray {
       : size(size),
         title(title),
         windowID(-1),
-        fb(NULL),
+        leftEye(NULL),
+        rightEye(NULL),
         stereo(stereo),
         receivedFrameID(-1),
         displayedFrameID(-1)
@@ -34,42 +35,46 @@ namespace ospray {
       glutIdleFunc(glutIdle);
     }
 
-    void GlutWindow::setFrameBuffer(FrameBuffer *fb)
+    void GlutWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
     {
+      PING;
       std::lock_guard<std::mutex> lock(mutex);
-      this->fb = fb;
+      this->leftEye = leftEye;
+      this->rightEye = rightEye;
       receivedFrameID++;
       newFrameAvail.notify_one();
     }
 
     void GlutWindow::glutIdle() 
     { 
-      // usleep(1000); 
+      usleep(1000); 
+      PING;
       glutPostRedisplay(); 
     }
 
     void GlutWindow::display() 
     {
+      PING;
       std::unique_lock<std::mutex> lock(mutex);
       newFrameAvail.wait(lock,[this](){return receivedFrameID > displayedFrameID; });
       
-      if (!fb) {
+      if (!leftEye) {
         // printf("no frame buffer set, yet\n");
       } else if (stereo) {
         // with stereo drawing ...
         glDrawBuffer(GL_BACK_LEFT);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, fb->pixels[0]);
+        glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
         
-        assert(fb->pixel[1]);
+        assert(rightEye != NULL);
         glDrawBuffer(GL_BACK_RIGHT); 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, fb->pixels[1]);
+        glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
       } else {
-        assert(fb->pixel[1] == NULL);
+        assert(rightEye == NULL);
         // no stereo
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, fb->pixels[0]);
+        glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
       }
       
       glutSwapBuffers();
