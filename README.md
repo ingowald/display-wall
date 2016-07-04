@@ -71,3 +71,21 @@ basically three steps:
 
 
 
+TODO
+====
+
+high priority
+-------------
+
+- implement some sort of image compression on the tiles (libjpg, libpng, libjpeg-turbo, ...)
+- multi-thread the tile receiving - in theory not a big problem, but needs to be done
+- implement full-screen capabilities for glutwindow
+
+low priority 
+------------
+
+- implement stereo support; let _client_ request stereo mode (not
+  glutwindow), and have server react accordingly. need to modify 'api'
+  for writeTile to specify which eye the tile belongs to.
+  
+  
