@@ -39,6 +39,7 @@ namespace ospray {
     {
       establishConnection(portName);
       receiveDisplayConfig();
+
       assert(wallConfig);
       if (me.rank == 0)
         wallConfig->print();
@@ -105,6 +106,11 @@ namespace ospray {
       CompressedTile encoded;
       encoded.encode(tile);
 
+      printf("#dw.c: writing (%i,%i)-(%i,%i)\n",
+             tile.region.lower.x,
+             tile.region.lower.y,
+             tile.region.upper.x,
+             tile.region.upper.y);
       // -------------------------------------------------------
       // compute displays affected by this tile
       // -------------------------------------------------------
@@ -117,6 +123,7 @@ namespace ospray {
       // -------------------------------------------------------
       for (int dy=affectedDisplay_begin.y;dy<affectedDisplay_end.y;dy++)
         for (int dx=affectedDisplay_begin.x;dx<affectedDisplay_end.x;dx++) {
+
           encoded.sendTo(displayGroup,wallConfig->rankOfDisplay(vec2i(dx,dy)));
         }
     }

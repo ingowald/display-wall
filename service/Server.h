@@ -62,16 +62,36 @@ namespace ospray {
         talk to the client rank(s) */
       MPI::Group waitForConnection(const MPI::Group &outwardFacingGroup);
 
+      /*! allocate the frame buffers for left/right eye and recv/display, respectively */
+      void allocateFrameBuffers();
 
       static Server *singleton;
 
       std::thread *commThread;
+      /*! group that contails ALL display service procs, including the
+          head node (if applicable) */
       const MPI::Group me;
+      /*! group that contains only the display procs; either a
+          intracomm (if a display node), or the intercomm (if head
+          node) */
+      MPI::Group displayGroup;
+
       const WallConfig wallConfig;
       const bool hasHeadNode;
       
       const DisplayCallback displayCallback;
       void *const objectForCallback;
+
+      /*! total number of pixels already written this frame */
+      size_t numWrittenThisFrame;
+      /*! total number of pixels we have to write this frame until we
+          have a full frame buffer */
+      size_t numExpectedThisFrame;
+
+      /*! @{ the four pixel arrays for left/right eye and
+          receive/display buffers, respectively */
+      uint32_t *recv_l, *recv_r, *disp_l, *disp_r;
+      /*! @} */
     };
 
     void startDisplayWallService(const MPI_Comm comm,

@@ -38,6 +38,22 @@ namespace ospray {
         throw std::runtime_error("non-default arrangments of displays not yet implemented");
     }
     
+    vec2i  WallConfig::displayIDofRank(int rank) const
+    {
+      return vec2i(rank % numDisplays.x,rank / numDisplays.x);
+    }
+
+    box2i  WallConfig::regionOfDisplay(const vec2i &displayID) const
+    {
+      return box2i(displayID * pixelsPerDisplay,
+                   displayID * pixelsPerDisplay + pixelsPerDisplay);
+    }
+
+    box2i  WallConfig::regionOfRank(int rank) const
+    { 
+      return regionOfDisplay(displayIDofRank(rank)); 
+    }
+
     int    WallConfig::rankOfDisplay(const vec2i &displayID) const 
     {
       return displayID.x+numDisplays.x*displayID.y;

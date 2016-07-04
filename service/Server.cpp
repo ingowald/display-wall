@@ -95,11 +95,30 @@ namespace ospray {
         printf("communication established...\n");
       }
       sendConfigToClient(MPI::Group(outside),outwardFacingGroup,wallConfig);
+
       outwardFacingGroup.barrier();
 
       /* and return the inter-communicator to the outside */
       return MPI::Group(outside);
     };
+    
+    /*! allocate the frame buffers for left/right eye and recv/display, respectively */
+    void Server::allocateFrameBuffers()
+    {
+      assert(recv_l == NULL);
+      assert(disp_l == NULL);
+      assert(recv_r == NULL);
+      assert(disp_r == NULL);
+
+      const int pixelsPerBuffer = wallConfig.pixelsPerDisplay.product();
+      recv_l = new uint32_t[pixelsPerBuffer];
+      disp_l = new uint32_t[pixelsPerBuffer];
+      if (wallConfig.stereo) {
+        recv_r = new uint32_t[pixelsPerBuffer];
+        disp_r = new uint32_t[pixelsPerBuffer];
+      }
+      cout << "frame buffer(s) allocated" << endl;
+    }
 
     /*! in dispather.cpp - the dispatcher that receives tiles on the
         head node, and then dispatches them to the actual tile
@@ -119,10 +138,6 @@ namespace ospray {
          node. if no head node is used the dispatcher comm is a
          COMM_NULL */
 
-      // dispathcer to communicate with other dispalys - either a
-      // intracomm if this is a display node, or a intracomm if this
-      // is the head node
-      MPI::Group displayGroup;
       // intercomm to the dispatcher, if this is a display node;
       // intracomm containing onyl the dispatche3r node if one exists,
       // or invalid if we're not running w/ a head node.
@@ -195,7 +210,13 @@ namespace ospray {
         hasHeadNode(hasHeadNode),
         displayCallback(displayCallback),
         objectForCallback(objectForCallback),
-        commThread(NULL)
+        commThread(NULL),
+        numWrittenThisFrame(0),
+        numExpectedThisFrame(wallConfig.pixelCount()),
+        recv_l(NULL),
+        recv_r(NULL),
+        disp_l(NULL),
+        disp_r(NULL)
     {
       // MPI::Group world(comm);
       // MPI::Group me = world.dup();

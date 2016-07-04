@@ -88,16 +88,18 @@ namespace ospray {
         usage("no display wall height specified (--heigh <h>)");
       if (world.size != numDisplays.x*numDisplays.y+hasHeadNode)
         throw std::runtime_error("invalid number of ranks for given display/head node config");
-      const char *title = "display wall window";
-      PING;
-      GlutWindow glutWindow(windowSize,title);
 
-      PING;
+      const int displayNo = hasHeadNode ? world.rank-1 : world.rank;
+      const vec2i displayID(displayNo % numDisplays.x, displayNo / numDisplays.x);
+
+      char title[1000];
+      sprintf(title,"display (%i,%i)",displayID.x,displayID.y);
+      GlutWindow glutWindow(windowSize,title);
+      
       WallConfig wallConfig(numDisplays,windowSize,
                             arrangement,doStereo);
-
-
-      PING;
+      
+      
       if (hasHeadNode && world.rank == 0) {
         cout << "running a dedicated headnode on rank 0; "
              << "not creating a window there" << endl;
@@ -105,25 +107,15 @@ namespace ospray {
         glutWindow.create();
       }
       
-      PING;
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
                               displayNewFrame,&glutWindow);
-
-      // std::thread commThread([&]() {
-      //     setupCommunications(&glutWindow,wallConfig,hasHeadNode,world);
-      //   });
-
-      PING;
-      sleep(1);
-      PING;
+      
       if (hasHeadNode && world.rank == 0) {
         /* no window on head node */
-        PING;
         throw std::runtime_error("should never reach this ...");
       } else {
         glutWindow.run();
       }
-      PING;
       // commThread.join();
       return 0;
     }

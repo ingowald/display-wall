@@ -21,6 +21,7 @@ SOFTWARE.
 */
 
 #include "Client.h"
+#include "ospray/common/tasking/parallel_for.h"
 
 namespace ospray {
   namespace dw {
@@ -33,23 +34,40 @@ namespace ospray {
 
     void renderFrame(const MPI::Group &me, Client *client)
     {
+      static size_t frameID = 0;
+
       assert(client);
       const vec2i totalPixels = client->totalPixelsInWall();
-      vec2i tileSize(160,10);
+      vec2i tileSize(32);
+      // vec2i tileSize(160,10);
       vec2i numTiles = divRoundUp(totalPixels,tileSize);
-      PlainTile tile;
-      for (int iy=0;iy<numTiles.y;iy++)
-        for (int ix=0;ix<numTiles.x;ix++) {
-          int tileID = ix + numTiles.x * iy;
+      size_t tileCount = numTiles.product();
+      parallel_for(tileCount,[&](int tileID){
           if ((tileID % me.size) != me.rank)
-            continue;
-          tile.region.lower = vec2i(ix,iy)*tileSize;
-          tile.region.upper = min(tile.region.lower+tileSize,totalPixels);
-          tile.pixel = new uint32_t[tileSize.x*tileSize.y];
-          client->writeTile(tile);
+            return;
 
-          delete[] tile.pixel;
-        }
+          PlainTile tile(tileSize);
+          const int tile_x = tileID % numTiles.x;
+          const int tile_y = tileID / numTiles.x;
+          
+          tile.region.lower = vec2i(tile_x,tile_y)*tileSize;
+          tile.region.upper = min(tile.region.lower+tileSize,totalPixels);
+
+          for (int iy=tile.region.lower.y;iy<tile.region.upper.y;iy++)
+            for (int ix=tile.region.lower.x;ix<tile.region.upper.x;ix++) {
+              int r = (frameID+ix) % 255;
+              int g = (frameID+iy) % 255;
+              int b = (frameID+ix+iy) % 255;
+              int rgba = (b<<16)+(g<<8)+(r<<0);
+              tile.pixel[(ix-tile.region.lower.x)+tileSize.x*(iy-tile.region.lower.y)] = rgba;
+            }
+
+          assert(client);
+          client->writeTile(tile);
+        });
+      ++frameID;
+      printf("done rendering frame %li\n",frameID);
+      sleep(1);
     }
 
     extern "C" int main(int ac, char **av)

@@ -22,7 +22,7 @@ SOFTWARE.
 
 #pragma once
 
-#include "common/vec.h"
+#include "common/box.h"
 
 namespace ospray {
   namespace dw {
@@ -48,9 +48,16 @@ namespace ospray {
 
       inline vec2i  totalPixels()  const { return numDisplays * pixelsPerDisplay; }
       inline size_t displayCount() const { return numDisplays.x*numDisplays.y; }
-      inline size_t pixelCount()   const { return totalPixels().x*totalPixels().y; }
-      
+      /*! return total pixels in a frame, INCLUDING stereo (if enabled) */
+      inline size_t pixelCount()   const { return (stereo?2:1)*totalPixels().x*totalPixels().y; }
+
+      /*! return the rank (in the display proc group) of given display coordinates */
       int    rankOfDisplay(const vec2i &displayID) const;
+      /*! return the X/Y display ID of the given display proc */
+      vec2i  displayIDofRank(int rank) const;
+      box2i  regionOfDisplay(const vec2i &displayID) const;
+      box2i  regionOfRank(int rank) const;
+
       void   print() const;
 
       vec2i numDisplays;

@@ -59,7 +59,6 @@ namespace ospray {
 
     void GlutWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
     {
-      PING;
       std::lock_guard<std::mutex> lock(mutex);
       this->leftEye = leftEye;
       this->rightEye = rightEye;
@@ -70,13 +69,11 @@ namespace ospray {
     void GlutWindow::glutIdle() 
     { 
       usleep(1000); 
-      PING;
       glutPostRedisplay(); 
     }
 
     void GlutWindow::display() 
     {
-      PING;
       std::unique_lock<std::mutex> lock(mutex);
       newFrameAvail.wait(lock,[this](){return receivedFrameID > displayedFrameID; });
       

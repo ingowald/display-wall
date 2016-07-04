@@ -33,6 +33,12 @@ namespace ospray {
     /*! a plain, uncompressed tile */
     struct PlainTile 
     {
+      PlainTile(const vec2i &tileSize)
+        : pitch(tileSize.x),
+          pixel(new uint32_t [tileSize.x*tileSize.y])
+      {}
+      ~PlainTile()
+      { delete[] pixel; }
       /*! region of pixels that this tile corresponds to */
       box2i region;
       /*! number of ints in pixel[] buffer from one y to y+1 */

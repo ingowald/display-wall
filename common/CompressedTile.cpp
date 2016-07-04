@@ -43,36 +43,35 @@ namespace ospray {
 
     void CompressedTile::encode(const PlainTile &tile)
     {
+      assert(tile.pixel);
       const vec2i begin = tile.region.lower;
       const vec2i end = tile.region.upper;
 
-      int numInts = 4+(end-begin).product();
-      assert(this->data = NULL);
-      this->numBytes = numInts*sizeof(int);
+      int numPixels = (end-begin).product();
+      this->numBytes = sizeof(CompressedTileHeader)+numPixels*sizeof(int);
       this->data = new unsigned char[this->numBytes];
-      int *write = (int *)(this->data+sizeof(CompressedTileHeader));
-      *write++ = begin.x;
-      *write++ = begin.y;
-      *write++ = end.x;
-      *write++ = end.y;
-      const int *line = (const int *)tile.pixel;
-      for (int iy=begin.y;iy<end.y;iy++) {
-        const int *in = line;
-        for (int ix=begin.x;ix<end.x;ix++)
-          *write++ = *line++;
-        line += tile.pitch;
+      assert(this->data != NULL);
+      CompressedTileHeader *header = (CompressedTileHeader *)this->data;
+      header->region.lower = begin;
+      header->region.upper = end;
+                                  
+      uint32_t *out = (uint32_t *)header->payload;
+      const uint32_t *in = (const uint32_t *)tile.pixel;
+      for (uint32_t iy=begin.y;iy<end.y;iy++) {
+        for (uint32_t ix=begin.x;ix<end.x;ix++) {
+          *out++ = *in++;
+        }
+
+        in += (tile.pitch-(end.x-begin.x));
       }
     }
-
+    
     void CompressedTile::decode(PlainTile &tile)
     {
       const CompressedTileHeader *header = (const CompressedTileHeader *)data;
       tile.region = header->region;
-      vec2i size = tile.region.upper-tile.region.lower;
-      tile.pitch = size.x;
-      int numInts = size.x*size.y;
-      assert(tile.pixel == NULL);
-      tile.pixel = new uint32_t[numInts];
+      vec2i size = tile.region.size();
+      assert(tile.pixel != NULL);
       uint32_t *out = tile.pixel;
       uint32_t *in = (uint32_t *)(data+sizeof(CompressedTileHeader));
       for (int iy=0;iy<size.y;iy++)
@@ -92,19 +91,18 @@ namespace ospray {
     /*! send the tile to the given rank in the given group */
     void CompressedTile::sendTo(const MPI::Group &group, const int rank) const
     {
-      PING;
       MPI_CALL(Send(data,numBytes,MPI_BYTE,rank,0,group.comm));
     }
 
     /*! receive one tile from the outside communicator */
     void CompressedTile::receiveOne(const MPI::Group &outside)
     {
-      printf("receiveone from outside %i/%i\n",outside.rank,outside.size);
+      // printf("receiveone from outside %i/%i\n",outside.rank,outside.size);
       MPI_Status status;
       MPI_CALL(Probe(MPI_ANY_SOURCE,MPI_ANY_TAG,outside.comm,&status));
       fromRank = status.MPI_SOURCE;
       MPI_CALL(Get_count(&status,MPI_BYTE,&numBytes));        
-      printf("incoming from %i, %i bytes\n",status.MPI_SOURCE,numBytes);
+      // printf("incoming from %i, %i bytes\n",status.MPI_SOURCE,numBytes);
       data = new unsigned char[numBytes];
       MPI_CALL(Recv(data,numBytes,MPI_BYTE,status.MPI_SOURCE,status.MPI_TAG,
                     outside.comm,&status));
