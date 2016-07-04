@@ -47,14 +47,31 @@ namespace ospray {
              DisplayCallback displayCallback,
              void *objectForCallback);
 
+      /*! the code that actually receives the tiles, decompresses
+          them, and writes them into the current (write-)frame buffer */
+      void processIncomingTiles(MPI::Group &outside);
+
+      /*! note: this runs in its own thread */
+      void setupCommunications(const WallConfig &wallConfig,
+                               bool hasHeadNode,
+                               const MPI::Group &world);
+      /*! open an MPI port and wait for the client(s) to connect to this
+        port after this function terminates, all outward facing procs
+        (either the head node, or all display nodes if no head node is
+        being used) should have an proper MPI communicator set up to
+        talk to the client rank(s) */
+      MPI::Group waitForConnection(const MPI::Group &outwardFacingGroup);
+
+
       static Server *singleton;
 
       std::thread *commThread;
       const MPI::Group me;
       const WallConfig wallConfig;
       const bool hasHeadNode;
-      DisplayCallback displayCallback;
-      void *objectForCallback;
+      
+      const DisplayCallback displayCallback;
+      void *const objectForCallback;
     };
 
     void startDisplayWallService(const MPI_Comm comm,

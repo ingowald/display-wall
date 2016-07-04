@@ -21,7 +21,9 @@ namespace ospray {
     };
 #endif
 
-    void processIncomingTiles(MPI::Group &outside,MPI::Group &me)
+    /*! the code that actually receives the tiles, decompresses
+      them, and writes them into the current (write-)frame buffer */
+    void Server::processIncomingTiles(MPI::Group &outside)
     {
       cout << "running tile receiver ..." << endl;
       while (1) {

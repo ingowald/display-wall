@@ -66,17 +66,17 @@ namespace ospray {
         (either the head node, or all display nodes if no head node is
         being used) should have an proper MPI communicator set up to
         talk to the client rank(s) */
-    MPI::Group waitForConnection(MPI::Group &me, const WallConfig &wallConfig)
+    MPI::Group Server::waitForConnection(const MPI::Group &outwardFacingGroup)
     {
       MPI_Comm outside;
-      me.barrier();
+      outwardFacingGroup.barrier();
       printf("outward facing rank %i/%i waiting for outside connection\n",
-             me.rank,me.size);
-      me.barrier();
+             outwardFacingGroup.rank,outwardFacingGroup.size);
+      outwardFacingGroup.barrier();
 
       /* open a port, and publish its name */
       char portName[MPI_MAX_PORT_NAME];
-      if (me.rank == 0) {
+      if (outwardFacingGroup.rank == 0) {
         MPI_CALL(Open_port(MPI_INFO_NULL,portName));
         printf("diplay wald waiting for connection on MPI port %s\n",
                portName);
@@ -90,12 +90,12 @@ namespace ospray {
       }
       
       /* accept / wait for outside connection on this port */
-      MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,me.comm,&outside));
-      if (me.rank == 0) {
+      MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,outwardFacingGroup.comm,&outside));
+      if (outwardFacingGroup.rank == 0) {
         printf("communication established...\n");
       }
-      sendConfigToClient(MPI::Group(outside),me,wallConfig);
-      me.barrier();
+      sendConfigToClient(MPI::Group(outside),outwardFacingGroup,wallConfig);
+      outwardFacingGroup.barrier();
 
       /* and return the inter-communicator to the outside */
       return MPI::Group(outside);
@@ -108,12 +108,10 @@ namespace ospray {
                        const MPI::Group &displays,
                        const WallConfig &wallConfig);
 
-    void processIncomingTiles(MPI::Group &outside,MPI::Group &me);
-
     /*! note: this runs in its own thread */
-    void setupCommunications(const WallConfig &wallConfig,
-                             bool hasHeadNode,
-                             const MPI::Group &world)
+    void Server::setupCommunications(const WallConfig &wallConfig,
+                                     bool hasHeadNode,
+                                     const MPI::Group &world)
     {
       // =======================================================
       /* create inter- and intra-comms to communicate between displays
@@ -158,27 +156,24 @@ namespace ospray {
           // =======================================================
           // DISPATCHER
           // =======================================================
-          MPI::Group outsideConnection = waitForConnection(dispatchGroup,wallConfig);
+          MPI::Group outsideConnection = waitForConnection(dispatchGroup);
           runDispatcher(outsideConnection,displayGroup,wallConfig);
         } else {
           // =======================================================
           // TILE RECEIVER
           // =======================================================
           MPI::Group incomingTiles = dispatchGroup;
-          processIncomingTiles(incomingTiles,displayGroup);
+          processIncomingTiles(incomingTiles);
         }
       } else {
         // =======================================================
         // TILE RECEIVER
         // =======================================================
-        MPI::Group incomingTiles = waitForConnection(displayGroup,wallConfig);
-        processIncomingTiles(incomingTiles,displayGroup);
+        MPI::Group incomingTiles = waitForConnection(displayGroup);
+        processIncomingTiles(incomingTiles);
       }
     }
     
-    DisplayCallback displayCallback = NULL;
-    void *objectForCallback = NULL;
-
     void startDisplayWallService(const MPI_Comm comm,
                                  const WallConfig &wallConfig,
                                  bool hasHeadNode,
@@ -195,7 +190,7 @@ namespace ospray {
                    const bool hasHeadNode,
                    DisplayCallback displayCallback,
                    void *objectForCallback)
-      : me(me.dup()),
+      : me(world.dup()),
         wallConfig(wallConfig),
         hasHeadNode(hasHeadNode),
         displayCallback(displayCallback),
