@@ -64,7 +64,7 @@ namespace ospray {
       tjhandle compressor = tjInitCompress();
       unsigned char *jpegBuffer = header->payload; //NULL;
       size_t jpegSize = numPixels*sizeof(int);
-      int rc = tjCompress2(compressor, (const unsigned char *)tile.pixel,
+      int rc = tjCompress2(compressor, (unsigned char *)tile.pixel,
                            tile.size().x,tile.pitch*sizeof(int),tile.size().y,
                            TJPF_BGRX, &jpegBuffer,&jpegSize,TJSAMP_444,JPEG_QUALITY,0);
       this->numBytes = jpegSize + sizeof(*header);
@@ -92,7 +92,7 @@ namespace ospray {
 #if TURBO_JPEG                       
       tjhandle decompressor = tjInitDecompress();
       size_t jpegSize = this->numBytes-sizeof(*header);
-      int rc = tjDecompress2(decompressor, (const unsigned char *)header->payload,
+      int rc = tjDecompress2(decompressor, (unsigned char *)header->payload,
                              this->numBytes-sizeof(*header),
                              (unsigned char*)tile.pixel,
                              size.x,tile.pitch*sizeof(int),size.y,
