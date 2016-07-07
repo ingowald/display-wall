@@ -39,6 +39,7 @@ namespace ospray {
       {}
       ~PlainTile()
       { delete[] pixel; }
+      inline vec2i size() const { return region.size(); }
       /*! region of pixels that this tile corresponds to */
       box2i region;
       /*! number of ints in pixel[] buffer from one y to y+1 */

@@ -22,6 +22,11 @@ SOFTWARE.
 
 #include "CompressedTile.h"
 
+#if TURBO_JPEG
+# include "turbojpeg.h"
+# define JPEG_QUALITY 100
+#endif
+
 namespace ospray {
   namespace dw {
 
@@ -54,7 +59,18 @@ namespace ospray {
       CompressedTileHeader *header = (CompressedTileHeader *)this->data;
       header->region.lower = begin;
       header->region.upper = end;
-                                  
+
+#if TURBO_JPEG                       
+      tjhandle compressor = tjInitCompress();
+      unsigned char *jpegBuffer = header->payload; //NULL;
+      size_t jpegSize = numPixels*sizeof(int);
+      int rc = tjCompress2(compressor, (const unsigned char *)tile.pixel,
+                           tile.size().x,tile.pitch*sizeof(int),tile.size().y,
+                           TJPF_BGRX, &jpegBuffer,&jpegSize,TJSAMP_444,JPEG_QUALITY,0);
+      this->numBytes = jpegSize + sizeof(*header);
+      printf("compress %i: %li->%li bytes\n",rc,numPixels*sizeof(int),jpegSize);
+      tjDestroy(compressor);
+#else
       uint32_t *out = (uint32_t *)header->payload;
       const uint32_t *in = (const uint32_t *)tile.pixel;
       for (uint32_t iy=begin.y;iy<end.y;iy++) {
@@ -64,6 +80,7 @@ namespace ospray {
 
         in += (tile.pitch-(end.x-begin.x));
       }
+#endif
     }
     
     void CompressedTile::decode(PlainTile &tile)
@@ -72,12 +89,24 @@ namespace ospray {
       tile.region = header->region;
       vec2i size = tile.region.size();
       assert(tile.pixel != NULL);
+#if TURBO_JPEG                       
+      tjhandle decompressor = tjInitDecompress();
+      size_t jpegSize = this->numBytes-sizeof(*header);
+      int rc = tjDecompress2(decompressor, (const unsigned char *)header->payload,
+                             this->numBytes-sizeof(*header),
+                             (unsigned char*)tile.pixel,
+                             size.x,tile.pitch*sizeof(int),size.y,
+                             TJPF_BGRX, 0);
+      printf("decompress %i: %i bytes\n",rc,this->numBytes);
+      tjDestroy(decompressor);
+#else
       uint32_t *out = tile.pixel;
       uint32_t *in = (uint32_t *)(data+sizeof(CompressedTileHeader));
       for (int iy=0;iy<size.y;iy++)
         for (int ix=0;ix<size.x;ix++) {
           *out++ = *in++;
         }
+#endif
     }
 
     /*! get region that this tile corresponds to */
