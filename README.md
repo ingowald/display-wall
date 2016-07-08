@@ -68,7 +68,7 @@ basically three steps:
   YOu need to specify the MPI port name that the service is running on.
 - look at the respective display wall cofig to figure out what frame res to deal with
 - do writeTiles() until all of a frame's pixels have been set
-
+- do a endFrame() ONCE (per client) at the end of each frame
 
 
 TODO
@@ -77,15 +77,19 @@ TODO
 high priority
 -------------
 
-- implement some sort of image compression on the tiles (libjpg, libpng, libjpeg-turbo, ...)
-- multi-thread the tile receiving - in theory not a big problem, but needs to be done
 - implement full-screen capabilities for glutwindow
+- add an abstract API (ospDwInit(), ospDwWriteTile(), ospDwEndFrame())
 
 low priority 
 ------------
 
+- add new handshake method via port (ie, open tcp port on server rank 0,
+  send mpi port to whoever connects on this)
 - implement stereo support; let _client_ request stereo mode (not
   glutwindow), and have server react accordingly. need to modify 'api'
   for writeTile to specify which eye the tile belongs to.
+- add some way of upscaling; ie, render at half/quarter the display res and
+  upscale during display
+
   
   
