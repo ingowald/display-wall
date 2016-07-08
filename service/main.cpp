@@ -77,6 +77,9 @@ namespace ospray {
           numDisplays.x = atoi(av[++i]);
         } else if (arg == "--height" || arg == "-h") {
           numDisplays.y = atoi(av[++i]);
+        } else if (arg == "--window-size" || arg == "-ws") {
+          windowSize.x = atoi(av[++i]);
+          windowSize.y = atoi(av[++i]);
         } else {
           usage("unkonwn arg "+arg);
         } 

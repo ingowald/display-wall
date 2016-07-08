@@ -39,6 +39,7 @@ namespace ospray {
           know how large a frame buffer to use ... */
       vec2i totalPixelsInWall() const;
       void writeTile(const PlainTile &tile);
+      void endFrame();
 
       WallConfig *wallConfig;
       MPI::Group displayGroup;

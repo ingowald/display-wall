@@ -35,6 +35,7 @@ namespace ospray {
     void renderFrame(const MPI::Group &me, Client *client)
     {
       static size_t frameID = 0;
+      static double lastTime = getSysTime();
 
       assert(client);
       const vec2i totalPixels = client->totalPixelsInWall();
@@ -66,8 +67,11 @@ namespace ospray {
           client->writeTile(tile);
         });
       ++frameID;
-      printf("done rendering frame %li\n",frameID);
-      sleep(1);
+      double thisTime = getSysTime();
+      printf("done rendering frame %li (%f fps)\n",frameID,1.f/(thisTime-lastTime));
+      lastTime = thisTime;
+      // me.barrier();
+      client->endFrame();
     }
 
     extern "C" int main(int ac, char **av)

@@ -49,7 +49,8 @@ namespace ospray {
       inline vec2i  totalPixels()  const { return numDisplays * pixelsPerDisplay; }
       inline size_t displayCount() const { return numDisplays.x*numDisplays.y; }
       /*! return total pixels in a frame, INCLUDING stereo (if enabled) */
-      inline size_t pixelCount()   const { return (stereo?2:1)*totalPixels().x*totalPixels().y; }
+      inline size_t totalPixelCount()   const { return (stereo?2:1)*totalPixels().x*totalPixels().y; }
+      inline size_t displayPixelCount()   const { return (stereo?2:1)*pixelsPerDisplay.x*pixelsPerDisplay.y; }
 
       /*! return the rank (in the display proc group) of given display coordinates */
       int    rankOfDisplay(const vec2i &displayID) const;

@@ -21,6 +21,7 @@ SOFTWARE.
 */
 
 #include "CompressedTile.h"
+#include <atomic>
 
 #if TURBO_JPEG
 # include "turbojpeg.h"
@@ -29,6 +30,18 @@ SOFTWARE.
 
 namespace ospray {
   namespace dw {
+
+#if TURBO_JPEG
+    void *CompressedTile::createCompressor() { return (void *)tjInitCompress(); }
+    void *CompressedTile::createDecompressor() { return (void *)tjInitDecompress(); }
+    void CompressedTile::freeCompressor(void *compressor) { tjDestroy((tjhandle)compressor); }
+    void CompressedTile::freeDecompressor(void *decompressor) { tjDestroy((tjhandle)decompressor); }
+#else
+    void *CompressedTile::createCompressor() { return NULL; }
+    void *CompressedTile::createDecompressor() { return NULL; }
+    void CompressedTile::freeCompressor(void *) {}
+    void CompressedTile::freeDecompressor(void *) {}
+#endif
 
     struct CompressedTileHeader {
       box2i region;
@@ -46,7 +59,7 @@ namespace ospray {
       if (data) delete[] data; 
     }
 
-    void CompressedTile::encode(const PlainTile &tile)
+    void CompressedTile::encode(void *compressor, const PlainTile &tile)
     {
       assert(tile.pixel);
       const vec2i begin = tile.region.lower;
@@ -61,15 +74,13 @@ namespace ospray {
       header->region.upper = end;
 
 #if TURBO_JPEG                       
-      tjhandle compressor = tjInitCompress();
       unsigned char *jpegBuffer = header->payload; //NULL;
       size_t jpegSize = numPixels*sizeof(int);
-      int rc = tjCompress2(compressor, (unsigned char *)tile.pixel,
+      int rc = tjCompress2((tjhandle)compressor, (unsigned char *)tile.pixel,
                            tile.size().x,tile.pitch*sizeof(int),tile.size().y,
                            TJPF_BGRX, &jpegBuffer,&jpegSize,TJSAMP_444,JPEG_QUALITY,0);
       this->numBytes = jpegSize + sizeof(*header);
-      printf("compress %i: %li->%li bytes\n",rc,numPixels*sizeof(int),jpegSize);
-      tjDestroy(compressor);
+      // printf("compress %i: %li->%li bytes\n",rc,numPixels*sizeof(int),jpegSize);
 #else
       uint32_t *out = (uint32_t *)header->payload;
       const uint32_t *in = (const uint32_t *)tile.pixel;
@@ -83,22 +94,20 @@ namespace ospray {
 #endif
     }
     
-    void CompressedTile::decode(PlainTile &tile)
+    void CompressedTile::decode(void *decompressor, PlainTile &tile)
     {
       const CompressedTileHeader *header = (const CompressedTileHeader *)data;
       tile.region = header->region;
       vec2i size = tile.region.size();
       assert(tile.pixel != NULL);
 #if TURBO_JPEG                       
-      tjhandle decompressor = tjInitDecompress();
       size_t jpegSize = this->numBytes-sizeof(*header);
-      int rc = tjDecompress2(decompressor, (unsigned char *)header->payload,
+      int rc = tjDecompress2((tjhandle)decompressor, (unsigned char *)header->payload,
                              this->numBytes-sizeof(*header),
                              (unsigned char*)tile.pixel,
                              size.x,tile.pitch*sizeof(int),size.y,
                              TJPF_BGRX, 0);
-      printf("decompress %i: %i bytes\n",rc,this->numBytes);
-      tjDestroy(decompressor);
+      // printf("decompress %i: %i bytes\n",rc,this->numBytes);
 #else
       uint32_t *out = tile.pixel;
       uint32_t *in = (uint32_t *)(data+sizeof(CompressedTileHeader));
@@ -120,7 +129,9 @@ namespace ospray {
     /*! send the tile to the given rank in the given group */
     void CompressedTile::sendTo(const MPI::Group &group, const int rank) const
     {
-      MPI_CALL(Send(data,numBytes,MPI_BYTE,rank,0,group.comm));
+      static std::atomic<int> tileID;
+      int myTileID = tileID++;
+      MPI_CALL(Send(data,numBytes,MPI_BYTE,rank,myTileID,group.comm));
     }
 
     /*! receive one tile from the outside communicator */
