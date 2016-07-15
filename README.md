@@ -96,8 +96,7 @@ follow these steps:
   YOu need to specify the MPI port name that the service is running on.
 - look at the respective display wall cofig to figure out what frame res to deal with
 - do writeTiles() until all of a frame's pixels have been set
-<<<<<<< HEAD
-- at the end of the frame, have _each_ renderer call 'endFrame()'
+- do a endFrame() ONCE (per client) at the end of each frame
 
 The DisplayWald "service"
 -------------------------
@@ -113,9 +112,6 @@ screen.
 
 In addition to the service library itself, the service/ directory also
 contains a sample glut-based application that does exactly the latter.
-=======
-- do a endFrame() ONCE (per client) at the end of each frame
->>>>>>> 03127f9faecefa06fa95125f650fe68737b2c8ef
 
 
 TODO
@@ -124,14 +120,10 @@ TODO
 high priority
 -------------
 
-<<<<<<< HEAD
-- multi-thread the tile receiving - in theory not a big problem, but needs to be done
 - implement full-screen capabilities for glutwindow
 - add a ospray pixel op to access the wall 
-=======
 - implement full-screen capabilities for glutwindow
 - add an abstract API (ospDwInit(), ospDwWriteTile(), ospDwEndFrame())
->>>>>>> 03127f9faecefa06fa95125f650fe68737b2c8ef
 
 low priority 
 ------------
@@ -147,6 +139,7 @@ low priority
 DONE
 ====
 
+- multi-thread the tile receiving and decoding
 - perform some sort of compressoin of tiles (currently using libjpeg-turbo)
 - establish connection and route pixels from client to service
 
