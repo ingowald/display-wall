@@ -69,7 +69,7 @@ namespace ospray {
                 << pixelsPerDisplay.x << "x" << pixelsPerDisplay.y << std::endl;
       std::cout << " - total pixels : " 
                 << totalPixels().x << "x" << totalPixels().y
-                << " (" << prettyNumber(pixelCount()) << "pix)" << std::endl;
+                << " (" << prettyNumber(totalPixelCount()) << "pix)" << std::endl;
     }
 
   } // ::ospray::dw

@@ -39,6 +39,7 @@ namespace ospray {
       {}
       ~PlainTile()
       { delete[] pixel; }
+      inline vec2i size() const { return region.size(); }
       /*! region of pixels that this tile corresponds to */
       box2i region;
       /*! number of ints in pixel[] buffer from one y to y+1 */
@@ -66,10 +67,14 @@ namespace ospray {
 
       /*! receive one tile from the outside communicator */
       void receiveOne(const MPI::Group &outside); 
-      void encode(const PlainTile &tile);
-      void decode(PlainTile &tile);
-    };
+      void encode(void *compressor, const PlainTile &tile);
+      void decode(void *decompressor, PlainTile &tile);
 
+      static void *createCompressor();
+      static void *createDecompressor();
+      static void freeCompressor(void *);
+      static void freeDecompressor(void *);
+    };
     
   } // ::ospray::dw
 } // ::ospray

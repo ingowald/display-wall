@@ -212,7 +212,7 @@ namespace ospray {
         objectForCallback(objectForCallback),
         commThread(NULL),
         numWrittenThisFrame(0),
-        numExpectedThisFrame(wallConfig.pixelCount()),
+        numExpectedThisFrame(wallConfig.displayPixelCount()),
         recv_l(NULL),
         recv_r(NULL),
         disp_l(NULL),

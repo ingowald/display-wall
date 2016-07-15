@@ -18,6 +18,37 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
+OPTION(USE_TURBO_JPEG "Use Turbo-Jpeg compression?" ON)
+
+IF (USE_TURBO_JPEG) 
+	ADD_DEFINITIONS(-DTURBO_JPEG=1)
+
+	# find libjpeg-turbo
+	FIND_PATH(TURBOJPEG_INCLUDE_DIR
+		NAMES turbojpeg.h
+		PATHS
+		$ENV{LIBJPEG_TURBO_DIR}/include
+		$ENV{TURBOJPEG_DIR}/include
+		#linux
+		/opt/libjpeg-turbo/include
+		#mac
+		/usr/local/opt/jpeg-turbo/include
+		)
+	
+	FIND_LIBRARY(TURBOJPEG_LIBRARY
+		NAMES turbojpeg
+		PATHS 
+		$ENV{LIBJPEG_TURBO_DIR}/lib
+		$ENV{TURBOJPEG_DIR}/lib
+		#linux
+		/opt/libjpeg-turbo/lib
+		#mac
+		/usr/local/opt/jpeg-turbo/lib
+		)
+ENDIF()
+
+INCLUDE_DIRECTORIES(${TURBOJPEG_INCLUDE_DIR})
+
 ADD_LIBRARY(ospray_dw_common
   WallConfig.cpp
   CompressedTile.cpp
@@ -26,6 +57,7 @@ ADD_LIBRARY(ospray_dw_common
 
 TARGET_LINK_LIBRARIES(ospray_dw_common
   ${MPI_CXX_LIBRARIES}
+	${TURBOJPEG_LIBRARY}
   ospray
   )
   

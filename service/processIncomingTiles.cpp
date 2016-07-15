@@ -1,6 +1,11 @@
 
 #include "Server.h"
 #include "../common/CompressedTile.h"
+#include "ospray/common/tasking/parallel_for.h"
+#include <mutex>
+#ifdef OSPRAY_TASKING_TBB
+# include <tbb/task_scheduler_init.h>
+#endif
 
 namespace ospray {
   namespace dw {
@@ -37,57 +42,83 @@ namespace ospray {
         // info with the tile; this isn't done yet
         throw std::runtime_error("stereo not implemented yet");
 
+#define THREADED_RECV 8
+
+#if THREADED_RECV
+      std::mutex displayMutex;
+# ifdef OSPRAY_TASKING_TBB
+      tbb::task_scheduler_init tbb_init;
+# endif
+      parallel_for(THREADED_RECV,[&](int) {
+#endif
+      void *decompressor = CompressedTile::createDecompressor();
       while (1) {
-        // -------------------------------------------------------
-        // receive one tiles
-        // -------------------------------------------------------
-        CompressedTile encoded;
-        encoded.receiveOne(outside);
+      // -------------------------------------------------------
+      // receive one tiles
+      // -------------------------------------------------------
+      CompressedTile encoded;
+      encoded.receiveOne(outside);
 
-        PlainTile plain(encoded.getRegion().size());
-        encoded.decode(plain);
+      PlainTile plain(encoded.getRegion().size());
+      encoded.decode(decompressor,plain);
 
-        const box2i globalRegion = plain.region;
-        size_t numWritten = 0;
-        const uint32_t *tilePixel = plain.pixel;
-        uint32_t *localPixel = recv_l;
-        for (int iy=globalRegion.lower.y;iy<globalRegion.upper.y;iy++) {
+      const box2i globalRegion = plain.region;
+      size_t numWritten = 0;
+      const uint32_t *tilePixel = plain.pixel;
+      uint32_t *localPixel = recv_l;
+      for (int iy=globalRegion.lower.y;iy<globalRegion.upper.y;iy++) {
 
-          if (iy < displayRegion.lower.y) continue;
-          if (iy >= displayRegion.upper.y) continue;
+      if (iy < displayRegion.lower.y) continue;
+      if (iy >= displayRegion.upper.y) continue;
           
-          for (int ix=globalRegion.lower.x;ix<globalRegion.upper.x;ix++) {
-            if (ix < displayRegion.lower.x) continue;
-            if (ix >= displayRegion.upper.x) continue;
+      for (int ix=globalRegion.lower.x;ix<globalRegion.upper.x;ix++) {
+      if (ix < displayRegion.lower.x) continue;
+      if (ix >= displayRegion.upper.x) continue;
 
-            const vec2i globalCoord(ix,iy);
-            const vec2i tileCoord = globalCoord-plain.region.lower;
-            const vec2i localCoord = globalCoord-displayRegion.lower;
-            const int localPitch = wallConfig.pixelsPerDisplay.x;
-            const int tilePitch  = plain.pitch;
-            const int tileOfs = tileCoord.x + tilePitch * tileCoord.y;
-            const int localOfs = localCoord.x + localPitch * localCoord.y;
-            localPixel[localOfs] = tilePixel[tileOfs];
-            ++numWritten;
-          }
-        }
-        numWrittenThisFrame += numWritten;
-        if (numWrittenThisFrame == numExpectedThisFrame) {
-          printf("display %i/%i has a full frame!\n",displayGroup.rank,displayGroup.size);
-
-          displayGroup.barrier();
-          printf("display %i/%i DISPLAYING\n",displayGroup.rank,displayGroup.size);
-
-          displayCallback(recv_l,recv_r,objectForCallback);
-          // reset counter
-          numWrittenThisFrame = 0;
-          numExpectedThisFrame = wallConfig.pixelCount();
-          // and switch the in/out buffers
-          std::swap(recv_l,disp_l);
-          std::swap(recv_r,disp_r);
-        }
-      }
+      const vec2i globalCoord(ix,iy);
+      const vec2i tileCoord = globalCoord-plain.region.lower;
+      const vec2i localCoord = globalCoord-displayRegion.lower;
+      const int localPitch = wallConfig.pixelsPerDisplay.x;
+      const int tilePitch  = plain.pitch;
+      const int tileOfs = tileCoord.x + tilePitch * tileCoord.y;
+      const int localOfs = localCoord.x + localPitch * localCoord.y;
+      localPixel[localOfs] = tilePixel[tileOfs];
+      ++numWritten;
+    }
     }
 
-  } // ::ospray::dw
-} // ::ospray
+      {
+#if THREADED_RECV
+      std::lock_guard<std::mutex> lock(displayMutex);
+#endif
+      numWrittenThisFrame += numWritten;
+      // printf("%i: %li/%li\n",displayGroup.rank,numWrittenThisFrame,numExpectedThisFrame);
+      if (numWrittenThisFrame == numExpectedThisFrame) {
+      printf("display %i/%i has a full frame!\n",displayGroup.rank,displayGroup.size);
+          
+      // displayGroup.barrier();
+      // printf("display %i/%i barrier'ing on %i/%i\n",
+      //   displayGroup.rank,displayGroup.size,
+      //   outside.rank,outside.size);
+      MPI_CALL(Barrier(outside.comm));
+      printf("display %i/%i DISPLAYING\n",displayGroup.rank,displayGroup.size);
+          
+      displayCallback(recv_l,recv_r,objectForCallback);
+      // reset counter
+      numWrittenThisFrame = 0;
+      numExpectedThisFrame = wallConfig.displayPixelCount();
+      // and switch the in/out buffers
+      std::swap(recv_l,disp_l);
+      std::swap(recv_r,disp_r);
+
+    }
+    }
+    }
+      CompressedTile::freeDecompressor(decompressor);
+#if THREADED_RECV
+    });
+#endif
+    }
+
+    } // ::ospray::dw
+    } // ::ospray

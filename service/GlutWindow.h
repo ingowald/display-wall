@@ -55,6 +55,7 @@ namespace ospray {
       const uint32_t *rightEye;
       std::mutex mutex;
       std::condition_variable newFrameAvail;
+      std::condition_variable newFrameDisplayed;
 
       int windowID;
       vec2i size;

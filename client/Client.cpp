@@ -99,18 +99,28 @@ namespace ospray {
       return wallConfig->totalPixels();
     }
 
+    void Client::endFrame()
+    {
+      // printf("client %i/%i barriering on %i/%i\n",me.rank,me.size,
+      //        displayGroup.rank,displayGroup.size);
+      MPI_CALL(Barrier(displayGroup.comm));
+    }
+
     void Client::writeTile(const PlainTile &tile)
     {
       assert(wallConfig);
 
+      void *compressor = CompressedTile::createCompressor();
       CompressedTile encoded;
-      encoded.encode(tile);
+      encoded.encode(compressor,tile);
+      CompressedTile::freeCompressor(compressor);
 
-      printf("#dw.c: writing (%i,%i)-(%i,%i)\n",
-             tile.region.lower.x,
-             tile.region.lower.y,
-             tile.region.upper.x,
-             tile.region.upper.y);
+
+      // printf("#dw.c: writing (%i,%i)-(%i,%i)\n",
+      //        tile.region.lower.x,
+      //        tile.region.lower.y,
+      //        tile.region.upper.x,
+      //        tile.region.upper.y);
       // -------------------------------------------------------
       // compute displays affected by this tile
       // -------------------------------------------------------
