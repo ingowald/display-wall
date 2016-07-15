@@ -22,6 +22,12 @@ SOFTWARE.
 
 #include "CompressedTile.h"
 
+#define USE_JPEGLIB 1
+
+#if USE_JPEGLIB
+#include "jpeglib.h"
+#endif
+
 namespace ospray {
   namespace dw {
 
@@ -72,12 +78,35 @@ namespace ospray {
       tile.region = header->region;
       vec2i size = tile.region.size();
       assert(tile.pixel != NULL);
+#if USE_JPEGLIB
+      struct jpeg_error_mgr jerr;
+      struct jpeg_decompress_struct cinfo;
+
+      cinfo.err = jpeg_std_error(&jerr);	
+
+      jpeg_create_decompress(&cinfo);
+      jpeg_mem_src(&cinfo, 
+                   (unsigned char *)header->payload, 
+                   this->numBytes-sizeof(*header));
+      int rc = jpeg_read_header(&cinfo, TRUE);
+      assert(rc == 1);
+      const vec2i jpegSize(cinfo.output_width,cinfo.output_height);
+      assert(size == jpegSize);
+      PRINT(jpegSize);
+      assert(cinfo.output_components == 4);
+      while (cinfo.output_scanline < cinfo.output_height) {
+        unsigned char *scanline[1];
+        scanline[0] = tile.pixel + cinfo.output_scanline * size.x;
+        jpeg_read_scanlines(&cinfo, scanline, 1);
+      }
+#else
       uint32_t *out = tile.pixel;
       uint32_t *in = (uint32_t *)(data+sizeof(CompressedTileHeader));
       for (int iy=0;iy<size.y;iy++)
         for (int ix=0;ix<size.x;ix++) {
           *out++ = *in++;
         }
+#endif
     }
 
     /*! get region that this tile corresponds to */
