@@ -18,6 +18,10 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
+
+# ------------------------------------------------------------------
+# the actual client library
+# ------------------------------------------------------------------
 ADD_LIBRARY(ospray_displayWald_client SHARED
   Client.cpp
   )
@@ -25,9 +29,24 @@ TARGET_LINK_LIBRARIES(ospray_displayWald_client
   ospray_dw_common
   )
   
+
+# ------------------------------------------------------------------
+# simple test tool that connects to a display all and renders a test
+# frame
+# ------------------------------------------------------------------
 ADD_EXECUTABLE(ospDwTest
   testMain.cpp
   )
 TARGET_LINK_LIBRARIES(ospDwTest
+  ospray_displayWald_client
+  )
+
+# ------------------------------------------------------------------
+# simple tool to print info about a running display wall service
+# ------------------------------------------------------------------
+ADD_EXECUTABLE(ospDwPrintInfo
+  printInfo.cpp
+  )
+TARGET_LINK_LIBRARIES(ospDwPrintInfo
   ospray_displayWald_client
   )

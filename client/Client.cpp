@@ -21,6 +21,7 @@ SOFTWARE.
 */
 
 #include "Client.h"
+#include "../common/Socket.h"
 
 namespace ospray {
   namespace dw {
@@ -31,7 +32,21 @@ namespace ospray {
     using std::endl;
     using std::flush;
 
-    std::string portNameFile = ".ospDisplayWald.port";
+    /*! read a service info from a given hostName:port. The service
+        has to already be running on that port */
+    void ServiceInfo::getFrom(const std::string &hostName,
+                              const int portNo)
+    {
+      socket_t sock = connect(hostName.c_str(),portNo);
+      if (!sock)
+        throw std::runtime_error("could not create display wall connection!");
+
+      mpiPortName = read_string(sock);
+      totalPixelsInWall.x = read_int(sock);
+      totalPixelsInWall.y = read_int(sock);
+      close(sock);
+    }
+
     
     Client::Client(const MPI::Group &me,
                    const std::string &portName)
@@ -45,18 +60,18 @@ namespace ospray {
         wallConfig->print();
     }
     
-    std::string readPortName()
-    {
-      FILE *file = fopen(portNameFile.c_str(),"r");
-      if (!file) 
-        throw std::runtime_error("could not open port name file '"+portNameFile+"'");
-      char line[1000];
-      fgets(line,1000,file);
-      char *eol = strstr(line,"\n");
-      if (eol) *eol = 0;
-      fclose(file);
-      return line;
-    }
+    // std::string readPortName()
+    // {
+    //   FILE *file = fopen(portNameFile.c_str(),"r");
+    //   if (!file) 
+    //     throw std::runtime_error("could not open port name file '"+portNameFile+"'");
+    //   char line[1000];
+    //   fgets(line,1000,file);
+    //   char *eol = strstr(line,"\n");
+    //   if (eol) *eol = 0;
+    //   fclose(file);
+    //   return line;
+    // }
 
     void Client::receiveDisplayConfig() 
     {
@@ -81,8 +96,8 @@ namespace ospray {
       me.barrier();
       if (me.rank == 0) {
         if (portName.empty())
-          portName = readPortName();
-        cout << "trying to connect to port '"<<portName << "'" << endl;
+          throw std::runtime_error("no mpi port name provided to establish connection");
+        cout << "trying to connect to MPI port '"<<portName << "'" << endl;
       }
       MPI_Comm newComm;
       MPI_CALL(Comm_connect(portName.c_str(),MPI_INFO_NULL,0,me.comm,&newComm));

@@ -29,6 +29,39 @@ namespace ospray {
 
     using namespace ospcommon;
 
+    /*! info structure that one can query from the display wall's info
+      port. the app can query this info and then use this to have the
+      client connect to the display wall */
+    struct ServiceInfo {
+      /* constructor that initializes everything to default values */
+      ServiceInfo()
+        : totalPixelsInWall(-1,-1),
+          mpiPortName("<value not set>")
+      {}
+
+      /*! total pixels in the entire display wall, across all
+        indvididual displays, and including bezels (future versios
+        will allow to render to smaller resolutions, too - and have
+        the clients upscale this - but for now the client(s) have to
+        render at exactly this resolution */
+      vec2i totalPixelsInWall;
+
+      /*! the MPI port name that the service is listening on client
+          connections for (ie, the one to use with
+          client::establishConnection) */
+      std::string mpiPortName; 
+
+      /*! read a service info from a given hostName:port. The service
+        has to already be running on that port 
+
+        Note this may throw a std::runtime_error if the connection
+        cannot be established 
+      */
+      void getFrom(const std::string &hostName,
+                   const int portNo);
+    };
+
+    /*! complete state of a given client rank */
     struct Client {
       Client(const MPI::Group &me,
              const std::string &portName);

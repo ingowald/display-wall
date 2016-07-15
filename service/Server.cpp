@@ -22,17 +22,55 @@ SOFTWARE.
 
 #include "Server.h"
 #include "../common/CompressedTile.h"
+#include "../common/Socket.h"
 
 namespace ospray {
   namespace dw {
+
+    int desiredInfoPortNum = 2903;
 
     using std::cout; 
     using std::endl;
     using std::flush;
 
-    std::string portNameFile = ".ospDisplayWald.port";
-
     Server *Server::singleton = NULL;
+
+    /*! create a port at a well-defined port ID, and use this to serve
+        - via a simple TCP/IP port - the name of the MPI port, the
+        parameters of the display wall, etc. Note this (should) be
+        only called by outward facing rank 0 */
+    void openInfoPort(const std::string &mpiPortName,
+                      const WallConfig &wallConfig)
+    {
+      socket_t listener = NULL;
+      int nextPortToTry = desiredInfoPortNum;
+      while (listener == NULL) {
+        listener = bind(nextPortToTry);
+        if (listener != NULL)
+          break;
+        nextPortToTry++;
+      }
+      
+      char hostName[1000];
+      gethostname(hostName,1000);
+      printf("=======================================================\n");
+      printf("#osp:dw: opened display wall info port on %s:%i\n",
+             hostName,nextPortToTry);
+      printf("=======================================================\n");
+      
+      static std::thread portListenerThread([=](){
+          while (1) {
+            socket_t client = listen(listener);
+            printf("#osp:dw: got client connection...");
+            write(client,mpiPortName);
+            write(client,wallConfig.totalPixels().x);
+            write(client,wallConfig.totalPixels().y);
+            write(client,(int)wallConfig.stereo);
+            flush(client);
+            close(client);
+          }
+        });
+    }
 
     /*! send the display wall config to the client, so the client will
         known both display arrayngement and total frame buffer
@@ -80,15 +118,15 @@ namespace ospray {
         MPI_CALL(Open_port(MPI_INFO_NULL,portName));
         printf("diplay wald waiting for connection on MPI port %s\n",
                portName);
-        FILE *file = fopen(portNameFile.c_str(),"w");
-        if (!file) 
-          throw std::runtime_error("could not open "+portNameFile+
-                                   " for writing port name");
-        fprintf(file,"%s",portName);
-        fclose(file);
-        printf("port name written to %s\n",portNameFile.c_str());
       }
-      
+
+      if (outwardFacingGroup.rank == 0) 
+        /* open the port that we give display wall info on
+           (capabilities and MPI port tname of the service); do that
+           only on rank 0 (or head node, if used) */
+        openInfoPort(portName,wallConfig);
+        
+
       /* accept / wait for outside connection on this port */
       MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,outwardFacingGroup.comm,&outside));
       if (outwardFacingGroup.rank == 0) {

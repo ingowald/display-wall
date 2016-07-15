@@ -22,6 +22,8 @@ SOFTWARE.
 
 #include "Client.h"
 #include "ospray/common/tasking/parallel_for.h"
+// std
+#include <vector>
 
 namespace ospray {
   namespace dw {
@@ -81,22 +83,30 @@ namespace ospray {
 
       std::string portName = "";
 
+      std::vector<std::string> nonDashArgs;
       for (int i=1;i<ac;i++) {
         const std::string arg = av[i];
-        // if (arg == "--head-node" || arg == "-hn") {
-        //   hasHeadNode = true;
-        // } else if (arg == "--no-head-node" || arg == "-nhn") {
-        //   hasHeadNode = false;
-        // } else {
-        throw std::runtime_error("unkonwn arg "+arg);
-        // } 
+        if (arg[0] == '-') {
+          throw std::runtime_error("unknown arg "+arg);
+        } else
+          nonDashArgs.push_back(arg);
       }
+
+      if (nonDashArgs.size() != 2) {
+        cout << "Usage: ./ospDwTest <hostName> <portNo>" << endl;
+        exit(1);
+      }
+      const std::string hostName = nonDashArgs[0];
+      const int portNum = atoi(nonDashArgs[1].c_str());
+
+      ServiceInfo serviceInfo;
+      serviceInfo.getFrom(hostName,portNum);
 
       // -------------------------------------------------------
       // args parsed, now do the job
       // -------------------------------------------------------
       MPI::Group me = world.dup();
-      Client *client = new Client(me,portName);
+      Client *client = new Client(me,serviceInfo.mpiPortName);
 
       while (1)
         renderFrame(me,client);
