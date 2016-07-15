@@ -18,11 +18,16 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
-
+ADD_LIBRARY(ospray_displayWald_client SHARED
+  Client.cpp
+  )
+TARGET_LINK_LIBRARIES(ospray_displayWald_client
+  ospray_dw_common
+  )
+  
 ADD_EXECUTABLE(ospDwTest
   testMain.cpp
-	Client.cpp
   )
 TARGET_LINK_LIBRARIES(ospDwTest
-  ospray_dw_common
+  ospray_displayWald_client
   )
