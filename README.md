@@ -1,8 +1,9 @@
 # DisplayWald - A simple diplay wall driver
-=========================================
+
+
+
 
 ## Introduction
-------------
 
 This is a simple library for displaying large frame buffers on a
 display wall. We do explicitly NOT offer any windowing abstractions,
@@ -27,8 +28,10 @@ Eventually this code will compress tiles before writing; but this is
 NOT yet implemented (look at CompresssedTile::encode/decode() to
 implement this, probably using libjpg, libjpeg-turbo, or libpng).
 
+
+
+
 ## Compiling the DisplayWald module
------------------------------------
 
 DisplayWald is a OSPRay *module*, and thus depends on a version of
 OSPRay to be compiled in. To do so, the displayWald source directory
@@ -47,8 +50,10 @@ To be able to compile the displayWald sources the
 OSPRAY_BUILD_MPI_DEVICE flag has to be turned on; if you want to _not_
 build the display wald code you can turn it off in the cmake config.
 
+
+
+
 ### Starting the DisplayWald Server
--------------------------------
 
 First: determine if you do want to run with a head node, or
 without. If all display nodes can be seen from the nodes that generate
@@ -87,8 +92,10 @@ is working, use
 Note that the displaywald will _not_ yet show anything; it will only
 display anything once a client actually connects and renders to it.
 
+
+
+
 ### Running the Test Renderer
-------------------------------
 
 To run a test-renderer use
 
@@ -98,8 +105,9 @@ This should start rendering a test image on the display wald. Note you
 (currently) have to kill and re-start the server every time an
 application has rendered on it.
 
+
+
 ### Running with the OSPRay GlutViewer
---------------------------------------
 
 DisplayWald also comes with a simple OSPRay pixelop to get frame
 buffer tiles onto the display wald. As soon as the displayWald module is
@@ -122,11 +130,12 @@ communication requires MPI, so the glutviewer _has_ to be run with an
 mpirun.
 
 
-Programming Guide
-=================
 
-Code organization
------------------
+
+
+## Programming Guide
+
+### Code organization
 
 The code is organized into two different components organized into differnet libraries:
 
@@ -146,8 +155,10 @@ The code is organized into two different components organized into differnet lib
 - "ospray/" contains a specific client that uses OSPRay PixelOp's to
   get a given ospray frame buffer's pixels onto a wall.
   
-Implementing a DisplayWald client
----------------------------------
+
+
+
+### Implementing a DisplayWald client
 
 The display wall "client" is the library that a MPI parallel renderer uses
 to put distributedly rendered tiels of pixels onto a given display wall.
@@ -162,8 +173,12 @@ follow these steps:
 - do writeTiles() until all of a frame's pixels have been set
 - do a endFrame() ONCE (per client) at the end of each frame
 
-The DisplayWald "service"
--------------------------
+
+
+
+
+
+### The DisplayWald "service"
 
 Though above described as a single entity, the "service" actually
 consists of two parts: First, the part that receives tiles of pixels,
@@ -178,18 +193,21 @@ In addition to the service library itself, the service/ directory also
 contains a sample glut-based application that does exactly the latter.
 
 
-TODO
-====
 
-high priority
--------------
+
+
+## TODO
+
+### high priority
 
 - implement full-screen capabilities for glutwindow
 - implement full-screen capabilities for glutwindow
 - add an abstract API (ospDwInit(), ospDwWriteTile(), ospDwEndFrame())
 
-low priority 
-------------
+
+
+
+### low priority 
 
 - implement stereo support; let _client_ request stereo mode (not
   glutwindow), and have server react accordingly. need to modify 'api'
@@ -197,8 +215,9 @@ low priority
 - add some way of upscaling; ie, render at half/quarter the display res and
   upscale during display
 
-DONE
-====
+
+
+## DONE
 
 - add a ospray pixel op to access the wall 
 - add new handshake method via port (ie, open tcp port on server rank 0,
