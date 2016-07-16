@@ -22,8 +22,7 @@ SOFTWARE.
 
 #pragma once 
 
-#include "common/box.h"
-#include "common/MPI.h"
+#include "MPI.h"
 
 namespace ospray {
   namespace dw {

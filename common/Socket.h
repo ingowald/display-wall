@@ -19,7 +19,7 @@
 
 #pragma once
 
-#include "common/vec.h"
+#include "MPI.h"
 
 namespace ospray
 {

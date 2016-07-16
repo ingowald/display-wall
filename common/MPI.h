@@ -23,7 +23,7 @@ SOFTWARE.
 #pragma once
 
 #include <mpi.h>
-#include "common/vec.h"
+#include "ospcommon/box.h"
 
 // IMPI on Windows defines MPI_CALL already, erroneously
 #ifdef MPI_CALL

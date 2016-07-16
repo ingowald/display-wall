@@ -2,7 +2,7 @@
 
 // ospray
 #include "ospray/ospray.h"
-#include "common/box.h"
+#include "../common/MPI.h"
 
 namespace ospray {
   using namespace ospcommon;
