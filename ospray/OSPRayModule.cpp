@@ -22,6 +22,8 @@ SOFTWARE.
 
 // ospray pixel 
 #include "ospray/fb/PixelOp.h"
+#include "ospray/fb/FrameBuffer.h"
+#include "ospray/mpi/MPICommon.h"
 // displaywald client
 #include "../client/Client.h"
 
@@ -34,38 +36,97 @@ namespace ospray {
 
     struct DisplayWaldPixelOp : public ospray::PixelOp 
     {
-      // /*! gets called every time the frame buffer got 'commit'ted */
-      // virtual void  commitNotify() {}
-      // /*! gets called once at the beginning of the frame */
-      // virtual void beginFrame() {}
-      // /*! gets called once at the end of the frame */
-      virtual void endFrame() {}
-      
-      // /*! called whenever a new tile comes in from a renderer, but
-      //     _before_ the tile gets written/accumulated into the frame
-      //     buffer. this way we can, for example, fill in missing
-      //     samples; however, the tile will _not_ yet contain the
-      //     previous frame's contributions from the accum buffer
-      //     etcpp. In distriubuted mode, it is undefined if this op gets
-      //     executed on the node that _produces_ the tile, or on the
-      //     node that _owns_ the tile (and its accum buffer data)  */
-      // virtual void preAccum(Tile &tile) {}
+      struct Instance : public ospray::PixelOp::Instance 
+      {
+        Instance(FrameBuffer *fb, 
+                 PixelOp::Instance *prev,
+                 dw::Client *client)
+          : client(client)
+        {
+          fb->pixelOp = this;
+        }
 
-      /*! called right after the tile got accumulated; i.e., the
+        // /*! gets called every time the frame buffer got 'commit'ted */
+        // virtual void  commitNotify() {}
+        // /*! gets called once at the beginning of the frame */
+        virtual void beginFrame() 
+        {
+          // this is a hack to force endFrame(); apparently endframe currently doesnt' get called!?
+          static int frameID = 0;
+          if (frameID++) {
+            endFrame();
+          }
+        }
+        // /*! gets called once at the end of the frame */
+        virtual void endFrame() { PING; client->endFrame(); }
+      
+        // /*! called whenever a new tile comes in from a renderer, but
+        //     _before_ the tile gets written/accumulated into the frame
+        //     buffer. this way we can, for example, fill in missing
+        //     samples; however, the tile will _not_ yet contain the
+        //     previous frame's contributions from the accum buffer
+        //     etcpp. In distriubuted mode, it is undefined if this op gets
+        //     executed on the node that _produces_ the tile, or on the
+        //     node that _owns_ the tile (and its accum buffer data)  */
+        // virtual void preAccum(Tile &tile) {}
+
+        /*! called right after the tile got accumulated; i.e., the
           tile's RGBA values already contain the accu-buffer blended
           values (assuming an accubuffer exists), and this function
           defines how these pixels are being processed before written
           into the color buffer */
-      virtual void postAccum(Tile &tile) {}
+        virtual void postAccum(Tile &tile) 
+        {
+          PlainTile plainTile(vec2i(TILE_SIZE));
+          plainTile.pitch = TILE_SIZE;
+          for (int i=0;i<TILE_SIZE*TILE_SIZE;i++) {
+            int r = int(255.f*tile.r[i]);
+            int g = int(255.f*tile.g[i]);
+            int b = int(255.f*tile.b[i]);
+            int rgba = (b<<24)|(g<<16)|(r<<8);
+            plainTile.pixel[i] = rgba;
+          }
+          plainTile.region = tile.region;
+          client->writeTile(plainTile);
+        }
+ 
+        //! \brief common function to help printf-debugging 
+        /*! Every derived class should overrride this! */
+        virtual std::string toString() const;
 
+        dw::Client *client;
+      };
+      
       //! \brief common function to help printf-debugging 
       /*! Every derived class should overrride this! */
       virtual std::string toString() const;
-    };
+      
+      /*! \brief commit the object's outstanding changes (such as changed
+       *         parameters etc) */
+      virtual void commit()
+      {
+        std::string streamName = getParamString("streamName","");
+        std::cout << "#osp:dw: trying to establish connection to display wall service at MPI port " << streamName << std::endl;
+        client = new dw::Client(mpi::worker.comm,streamName);
+      }
 
+      //! \brief create an instance of this pixel op
+      virtual ospray::PixelOp::Instance *createInstance(FrameBuffer *fb, 
+                                                        PixelOp::Instance *prev)
+      {
+        return new Instance(fb,prev,client);
+      }
+      
+      dw::Client *client;
+    };
+    
     //! \brief common function to help printf-debugging 
     std::string DisplayWaldPixelOp::toString() const 
     { return "ospray::dw::DisplayWaldPixelOp (displayWald module)"; }
+
+    //! \brief common function to help printf-debugging 
+    std::string DisplayWaldPixelOp::Instance::toString() const 
+    { return "ospray::dw::DisplayWaldPixelOp::Instance (displayWald module)"; }
 
     extern "C" void ospray_init_module_displayWald()
     {
