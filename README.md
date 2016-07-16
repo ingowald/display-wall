@@ -1,7 +1,7 @@
-DisplayWald - A simple diplay wall driver
+# DisplayWald - A simple diplay wall driver
 =========================================
 
-Introduction
+## Introduction
 ------------
 
 This is a simple library for displaying large frame buffers on a
@@ -27,7 +27,27 @@ Eventually this code will compress tiles before writing; but this is
 NOT yet implemented (look at CompresssedTile::encode/decode() to
 implement this, probably using libjpg, libjpeg-turbo, or libpng).
 
-Starting the DisplayWald Server
+## Compiling the DisplayWald module
+-----------------------------------
+
+DisplayWald is a OSPRay *module*, and thus depends on a version of
+OSPRay to be compiled in. To do so, the displayWald source directory
+has to be placed into the <ospray>/modules/ directory, where <ospray>
+is the directory that contains the OSPRay source directory (the
+easiest of putting the module there is to directory clone it into this
+directory). 
+
+Once displayWald source is placed into this module/ directory the next
+build of OSPRay should automatically build it. Note that the directory
+name of the displayWald sources does not matter; ospray will
+automatically build _all_ subdirectories it can find under the
+modules/ dir.
+
+To be able to compile the displayWald sources the
+OSPRAY_BUILD_MPI_DEVICE flag has to be turned on; if you want to _not_
+build the display wald code you can turn it off in the cmake config.
+
+### Starting the DisplayWald Server
 -------------------------------
 
 First: determine if you do want to run with a head node, or
@@ -42,13 +62,14 @@ Finaly, laucnh the ospDisplayWald executable through mpirun, with the proper par
 
 Example 1: Running on a 3x2 non-stereo display wall, WITHOUT head node
 
-				 mpirun -perhost 1 -n 6 ./ospDisplayWald -w 3 -h 2 --no-head-node
+    mpirun -perhost 1 -n 6 ./ospDisplayWald -w 3 -h 2 --no-head-node
 
 Note how we use 6 (==3x2) ranks; which is one per display.
 
 Example 2: Running on a 3x2 non-stereo display wall, WITH dedicated head node
 
-				 mpirun -perhost 1 -n 7 ./ospDisplayWald -w 3 -h 2 --head-node
+    mpirun -perhost 1 -n 7 ./ospDisplayWald -w 3 -h 2 --head-node
+	
 Note we use have to use *7* ranks; 6 for the displays, plus one (on rank 0) for the head node.
 
 In all examples, make sure to use the right hosts file that properly
@@ -56,6 +77,49 @@ enumerates which ranks run which role. WHen using a head node, rank 0
 should be head node; all other ranks are one rank per display,
 starting on the lower left and progressing right first (for 'w'
 nodes), then upwards ('h' times)
+
+Once the displayWald is started, it should print a hostname and a port
+name that it is listening on for connections. To check if everything
+is working, use
+
+	./ospDwPrintInfo <hostName> <portNum>
+	
+Note that the displaywald will _not_ yet show anything; it will only
+display anything once a client actually connects and renders to it.
+
+### Running the Test Renderer
+------------------------------
+
+To run a test-renderer use
+
+	mpirun -n <numRanks> <other mpi params> ./ospDwTest <hostName> <portNum>
+	
+This should start rendering a test image on the display wald. Note you
+(currently) have to kill and re-start the server every time an
+application has rendered on it.
+
+### Running with the OSPRay GlutViewer
+--------------------------------------
+
+DisplayWald also comes with a simple OSPRay pixelop to get frame
+buffer tiles onto the display wald. As soon as the displayWald module is
+enabled, the GlutViewer will be able to "mirror" its own render window
+on the display window (at much higher resolution, of course). To run this, run
+
+	mpirun -n <numRanks> <mpiFlags> ./ospGlutViewer <model> --module displayWald --display-wall <host> <port>
+	
+(using the host:port settings that the server printed out when starting).
+
+The glutviewer will then automatically query the display wall
+resolution, open a second frame buffer at that resolution, and use the
+provided pixelOp (in displayWald/ospray/) to get that frame buffer
+onto the displays.
+
+Note this method _does_ require an mpirun for both the display wall
+server _and_ the ospGlutViewer; though the host:port refers to a
+TCP/IP socket that serves the display wall config, the internal
+communication requires MPI, so the glutviewer _has_ to be run with an
+mpirun.
 
 
 Programming Guide
