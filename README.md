@@ -185,15 +185,12 @@ high priority
 -------------
 
 - implement full-screen capabilities for glutwindow
-- add a ospray pixel op to access the wall 
 - implement full-screen capabilities for glutwindow
 - add an abstract API (ospDwInit(), ospDwWriteTile(), ospDwEndFrame())
 
 low priority 
 ------------
 
-- add new handshake method via port (ie, open tcp port on server rank 0,
-  send mpi port to whoever connects on this)
 - implement stereo support; let _client_ request stereo mode (not
   glutwindow), and have server react accordingly. need to modify 'api'
   for writeTile to specify which eye the tile belongs to.
@@ -203,6 +200,9 @@ low priority
 DONE
 ====
 
+- add a ospray pixel op to access the wall 
+- add new handshake method via port (ie, open tcp port on server rank 0,
+  send mpi port to whoever connects on this)
 - multi-thread the tile receiving and decoding
 - perform some sort of compressoin of tiles (currently using libjpeg-turbo)
 - establish connection and route pixels from client to service
