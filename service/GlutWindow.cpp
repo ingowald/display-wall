@@ -67,7 +67,6 @@ namespace ospray {
         this->leftEye = leftEye;
         this->rightEye = rightEye;
         receivedFrameID++;
-        cout << "setting frame buffer for frame " << receivedFrameID << endl;
         newFrameAvail.notify_one();
       }
 #if 0
@@ -84,7 +83,6 @@ namespace ospray {
 
     void GlutWindow::glutIdle() 
     { 
-      // usleep(1000); 
       glutPostRedisplay(); 
     }
 

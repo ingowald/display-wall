@@ -48,28 +48,10 @@ namespace ospray {
 
         // /*! gets called every time the frame buffer got 'commit'ted */
         // virtual void  commitNotify() {}
-        // /*! gets called once at the beginning of the frame */
-        virtual void beginFrame() 
-        {
-          // this is a hack to force endFrame(); apparently endframe currently doesnt' get called!?
-          static int frameID = 0;
-          if (frameID++) {
-            endFrame();
-          }
-        }
         // /*! gets called once at the end of the frame */
-        virtual void endFrame() { PING; client->endFrame(); }
+        virtual void endFrame() 
+        { client->endFrame(); }
       
-        // /*! called whenever a new tile comes in from a renderer, but
-        //     _before_ the tile gets written/accumulated into the frame
-        //     buffer. this way we can, for example, fill in missing
-        //     samples; however, the tile will _not_ yet contain the
-        //     previous frame's contributions from the accum buffer
-        //     etcpp. In distriubuted mode, it is undefined if this op gets
-        //     executed on the node that _produces_ the tile, or on the
-        //     node that _owns_ the tile (and its accum buffer data)  */
-        // virtual void preAccum(Tile &tile) {}
-
         /*! called right after the tile got accumulated; i.e., the
           tile's RGBA values already contain the accu-buffer blended
           values (assuming an accubuffer exists), and this function
@@ -107,6 +89,7 @@ namespace ospray {
       {
         std::string streamName = getParamString("streamName","");
         std::cout << "#osp:dw: trying to establish connection to display wall service at MPI port " << streamName << std::endl;
+        PING;
         client = new dw::Client(mpi::worker.comm,streamName);
       }
 

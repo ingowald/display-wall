@@ -91,13 +91,13 @@ namespace ospray {
     }
 
     /*! establish connection between 'me' and the remote service */
-    void Client::establishConnection(std::string portName)
+    void Client::establishConnection(const std::string &portName)
     {
       me.barrier();
       if (me.rank == 0) {
         if (portName.empty())
           throw std::runtime_error("no mpi port name provided to establish connection");
-        cout << "trying to connect to MPI port '"<<portName << "'" << endl;
+        cout << "#osp.dw: trying to connect to MPI port '"<<portName << "'" << endl;
       }
       MPI_Comm newComm;
       MPI_CALL(Comm_connect(portName.c_str(),MPI_INFO_NULL,0,me.comm,&newComm));
@@ -116,8 +116,8 @@ namespace ospray {
 
     void Client::endFrame()
     {
-      // printf("client %i/%i barriering on %i/%i\n",me.rank,me.size,
-      //        displayGroup.rank,displayGroup.size);
+      DW_DBG(printf("#osp.dw(dsp): client %i/%i barriering on %i/%i\n",me.rank,me.size,
+                 displayGroup.rank,displayGroup.size));
       MPI_CALL(Barrier(displayGroup.comm));
     }
 

@@ -38,7 +38,11 @@ namespace ospray {
                        const WallConfig &wallConfig)
     {
       // std::thread *dispatcherThread = new std::thread([=]() {
-      std::cout << "Running the dispatcher thread ..." << std::endl;
+      std::cout << "#osp:dw(hn): running dispatcher on rank 0" << std::endl;
+
+      size_t numWrittenThisFrame = 0;
+      size_t numExpectedThisFrame = wallConfig.totalPixelCount();
+
       while (1) {
         CompressedTile encoded;
         encoded.receiveOne(outsideClients);
@@ -57,6 +61,15 @@ namespace ospray {
         for (int dy=affectedDisplay_begin.y;dy<affectedDisplay_end.y;dy++)
           for (int dx=affectedDisplay_begin.x;dx<affectedDisplay_end.x;dx++) 
             encoded.sendTo(displayGroup,wallConfig.rankOfDisplay(vec2i(dx,dy)));;
+
+        numWrittenThisFrame += region.size().product();
+        if (numWrittenThisFrame == numExpectedThisFrame) {
+          DW_DBG(printf("#osp:dw(hn): head node has a full frame\n"));
+          outsideClients.barrier();
+          displayGroup.barrier();
+
+          numWrittenThisFrame = 0;
+        }
         
       };
       // });

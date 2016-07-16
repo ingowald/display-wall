@@ -24,6 +24,9 @@ SOFTWARE.
 
 #include "common/box.h"
 
+// macro to turn on/off debugging printouts for the display wall
+#define DW_DBG(a) /* nothing */
+
 namespace ospray {
   namespace dw {
 
