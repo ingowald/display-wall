@@ -10,6 +10,8 @@
 namespace ospray {
   namespace dw {
 
+#define DW_DBG(a) 
+
     using std::cout; 
     using std::endl;
     using std::flush;
@@ -23,15 +25,13 @@ namespace ospray {
              displayGroup.rank,displayGroup.size);
       
       const box2i displayRegion = wallConfig.regionOfRank(displayGroup.rank);
-      PRINT(displayRegion);
-
       if (wallConfig.stereo)
         // for doing stereo, we have to somehow pass left/right eye
         // info with the tile; this isn't done yet
         throw std::runtime_error("stereo not implemented yet");
 
 #define THREADED_RECV 8
-
+        
 #if THREADED_RECV
       std::mutex displayMutex;
 # ifdef OSPRAY_TASKING_TBB

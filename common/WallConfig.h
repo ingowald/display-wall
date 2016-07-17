@@ -46,11 +46,25 @@ namespace ospray {
 
       WallConfig(const vec2i &numDisplays, 
                  const vec2i &pixelsPerDisplay,
+                 const vec2f &relativeBezelWidth=vec2f(0.f),
                  const DisplayArrangement displayArrangement=Arrangement_xy,
                  const bool stereo=0);
 
-      inline vec2i  totalPixels()  const { return numDisplays * pixelsPerDisplay; }
-      inline size_t displayCount() const { return numDisplays.x*numDisplays.y; }
+      /*! returns the number of pixels (in x and y, respectively) that
+          the bezel will cover. Note we do not care whether bezels are
+          symmetric in left/right respective in top/bottom direction:
+          the 'x' value is the sum of left and right bezel area; the
+          'y' value the sum of top and bottom area' */
+      vec2i bezelPixelsPerDisplay() const;
+
+      /*! computes the total number of pixels (in x and y directions,
+          respectively), across all pixels, and INCLUDING "hidden"
+          pixels in the bezels (ie, even though there is nothing to
+          actually see in a bezel we report the bezel as if it was
+          covered by pixels to avoid distortion) */
+      vec2i  totalPixels()  const;
+      /*! returns the total number of displays across x and y dimensions */
+      size_t displayCount() const;
       /*! return total pixels in a frame, INCLUDING stereo (if enabled) */
       inline size_t totalPixelCount()   const { return (stereo?2:1)*totalPixels().x*totalPixels().y; }
       inline size_t displayPixelCount()   const { return (stereo?2:1)*pixelsPerDisplay.x*pixelsPerDisplay.y; }
@@ -59,8 +73,16 @@ namespace ospray {
       int    rankOfDisplay(const vec2i &displayID) const;
       /*! return the X/Y display ID of the given display proc */
       vec2i  displayIDofRank(int rank) const;
+
+      /*! return the pixel region in the global display wall space
+        that display at given coordinates is covering */
       box2i  regionOfDisplay(const vec2i &displayID) const;
       box2i  regionOfRank(int rank) const;
+      
+      /*! returns range of displays that are affected by the given
+          region of pixels (ie, that together are guaranteed to cover
+          that pixel region */
+      box2i  affectedDisplays(const box2i &pixelRegion) const;
 
       void   print() const;
 
@@ -68,6 +90,7 @@ namespace ospray {
       vec2i pixelsPerDisplay;
       DisplayArrangement displayArrangement;
       bool stereo;
+      vec2f relativeBezelWidth;
     };
 
   } // ::ospray::dw

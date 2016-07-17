@@ -36,9 +36,6 @@ namespace ospray {
     bool doStereo    = false;
     WallConfig::DisplayArrangement arrangement = WallConfig::Arrangement_xy;
     
-    vec2i windowSize(320,240);
-    vec2i numDisplays(0,0);
-
     void usage(const std::string &err)
     {
       if (!err.empty()) {
@@ -67,6 +64,10 @@ namespace ospray {
       MPI::init(ac,av);
       MPI::Group world(MPI_COMM_WORLD);
 
+      vec2f relativeBezelWidth(0.f);
+      vec2i windowSize(320,240);
+      vec2i numDisplays(0,0);
+
       for (int i=1;i<ac;i++) {
         const std::string arg = av[i];
         if (arg == "--head-node" || arg == "-hn") {
@@ -74,12 +75,25 @@ namespace ospray {
         } else if (arg == "--no-head-node" || arg == "-nhn") {
           hasHeadNode = false;
         } else if (arg == "--width" || arg == "-w") {
+          assert(i+1<ac);
           numDisplays.x = atoi(av[++i]);
         } else if (arg == "--height" || arg == "-h") {
+          assert(i+1<ac);
           numDisplays.y = atoi(av[++i]);
         } else if (arg == "--window-size" || arg == "-ws") {
+          assert(i+1<ac);
           windowSize.x = atoi(av[++i]);
+          assert(i+1<ac);
           windowSize.y = atoi(av[++i]);
+        } else if (arg == "--bezel" || arg == "-b") {
+          if (i+2 >= ac) {
+            printf("format for --bezel|-b argument is '-b <x> <y>'\n");
+            exit(1);
+          }
+          assert(i+1<ac);
+          relativeBezelWidth.x = atof(av[++i]);
+          assert(i+1<ac);
+          relativeBezelWidth.y = atof(av[++i]);
         } else {
           usage("unkonwn arg "+arg);
         } 
@@ -100,16 +114,22 @@ namespace ospray {
       GlutWindow glutWindow(windowSize,title);
       
       WallConfig wallConfig(numDisplays,windowSize,
+                            relativeBezelWidth,
                             arrangement,doStereo);
+
+      if (world.rank == 0) {
+        cout << "#osp:dw: display wall config is" << endl;
+        wallConfig.print();
+      }
       
       
       if (hasHeadNode && world.rank == 0) {
-        cout << "running a dedicated headnode on rank 0; "
+        cout << "#osp:dw: running a dedicated headnode on rank 0; "
              << "not creating a window there" << endl;
       } else {
         glutWindow.create();
       }
-      
+
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
                               displayNewFrame,&glutWindow);
       

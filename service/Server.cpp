@@ -81,17 +81,21 @@ namespace ospray {
     {
       vec2i numDisplays = wallConfig.numDisplays;
       vec2i pixelsPerDisplay = wallConfig.pixelsPerDisplay;
+      vec2f relativeBezelWidth = wallConfig.relativeBezelWidth;
       int arrangement = wallConfig.displayArrangement;
       int stereo      = wallConfig.stereo;
       /*! if we're the head node, let's 'fake' a single display to the client */
       if (me.size == 1) {
-        pixelsPerDisplay = pixelsPerDisplay * numDisplays;
+        pixelsPerDisplay = wallConfig.totalPixels();
         numDisplays = vec2i(1);
+        relativeBezelWidth = vec2f(0.f);
       }
 
       MPI_CALL(Bcast(&numDisplays,2,MPI_INT,
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
       MPI_CALL(Bcast(&pixelsPerDisplay,2,MPI_INT,
+                     me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+      MPI_CALL(Bcast(&relativeBezelWidth,2,MPI_FLOAT,
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
       MPI_CALL(Bcast(&arrangement,1,MPI_INT,
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
@@ -148,6 +152,12 @@ namespace ospray {
       assert(recv_r == NULL);
       assert(disp_r == NULL);
 
+      // // me.barrier();
+      // if (outsdide.rank == 0)
+      //   printf("#osp:dw: allocating frame buffers of %ix%i pixels\n",
+      //          wallConfig.pixelsPerDisplay.x,wallConfig.pixelsPerDisplay.y);
+      // // me.barrier();
+
       const int pixelsPerBuffer = wallConfig.pixelsPerDisplay.product();
       recv_l = new uint32_t[pixelsPerBuffer];
       disp_l = new uint32_t[pixelsPerBuffer];
@@ -155,7 +165,10 @@ namespace ospray {
         recv_r = new uint32_t[pixelsPerBuffer];
         disp_r = new uint32_t[pixelsPerBuffer];
       }
-      cout << "frame buffer(s) allocated" << endl;
+      // me.barrier();
+      // if (me.rank == 0)
+      //   printf("#osp:dw: frame buffers allocated (across all ranks)\n");
+      // me.barrier();
     }
 
     /*! in dispather.cpp - the dispatcher that receives tiles on the
