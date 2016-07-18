@@ -44,6 +44,7 @@ namespace ospray {
       mpiPortName = read_string(sock);
       totalPixelsInWall.x = read_int(sock);
       totalPixelsInWall.y = read_int(sock);
+      stereo = read_int(sock);
       close(sock);
     }
 

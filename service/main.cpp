@@ -30,11 +30,6 @@ namespace ospray {
     using std::cout; 
     using std::endl;
     using std::flush;
-
-    // default settings
-    bool hasHeadNode = false;
-    bool doStereo    = false;
-    WallConfig::DisplayArrangement arrangement = WallConfig::Arrangement_xy;
     
     void usage(const std::string &err)
     {
@@ -64,6 +59,10 @@ namespace ospray {
       MPI::init(ac,av);
       MPI::Group world(MPI_COMM_WORLD);
 
+      // default settings
+      bool hasHeadNode = false;
+      bool doStereo    = false;
+      WallConfig::DisplayArrangement arrangement = WallConfig::Arrangement_xy;
       vec2f relativeBezelWidth(0.f);
       vec2i windowSize(320,240);
       vec2i numDisplays(0,0);
@@ -72,6 +71,8 @@ namespace ospray {
         const std::string arg = av[i];
         if (arg == "--head-node" || arg == "-hn") {
           hasHeadNode = true;
+        } else if (arg == "--stereo" || arg == "-s") {
+          doStereo = true;
         } else if (arg == "--no-head-node" || arg == "-nhn") {
           hasHeadNode = false;
         } else if (arg == "--width" || arg == "-w") {
@@ -111,7 +112,7 @@ namespace ospray {
 
       char title[1000];
       sprintf(title,"display (%i,%i)",displayID.x,displayID.y);
-      GlutWindow glutWindow(windowSize,title);
+      GlutWindow glutWindow(windowSize,title,doStereo);
       
       WallConfig wallConfig(numDisplays,windowSize,
                             relativeBezelWidth,

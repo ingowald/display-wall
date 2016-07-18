@@ -62,9 +62,9 @@ namespace ospray {
           PlainTile plainTile(vec2i(TILE_SIZE));
           plainTile.pitch = TILE_SIZE;
           for (int i=0;i<TILE_SIZE*TILE_SIZE;i++) {
-            int r = int(255.f*tile.r[i]);
-            int g = int(255.f*tile.g[i]);
-            int b = int(255.f*tile.b[i]);
+            int r = std::min(255,int(255.f*tile.r[i]));
+            int g = std::min(255,int(255.f*tile.g[i]));
+            int b = std::min(255,int(255.f*tile.b[i]));
             int rgba = (b<<24)|(g<<16)|(r<<8);
             plainTile.pixel[i] = rgba;
           }

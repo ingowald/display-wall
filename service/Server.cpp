@@ -61,7 +61,7 @@ namespace ospray {
       static std::thread portListenerThread([=](){
           while (1) {
             socket_t client = listen(listener);
-            printf("#osp:dw: got client connection...");
+            //            printf("#osp:dw: got client connection...\n");
             write(client,mpiPortName);
             write(client,wallConfig.totalPixels().x);
             write(client,wallConfig.totalPixels().y);

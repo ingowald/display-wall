@@ -51,6 +51,9 @@ namespace ospray {
           client::establishConnection) */
       std::string mpiPortName; 
 
+      /*! whether this runs in stereo mode */
+      int stereo;
+
       /*! read a service info from a given hostName:port. The service
         has to already be running on that port 
 
