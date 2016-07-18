@@ -133,6 +133,49 @@ mpirun.
 
 
 
+
+## User Guide
+
+### Cmd-line parameters for the DisplayWald Server
+
+The DisplayWald server understands the following command line parameters
+
+- --width|-w <Nx>         number of displays in x dimensions
+- --height|-h <Ny>        number of displays in y dimension
+- --[no-]head-node|-[n]hn Run with resp without dedicated head node on rank 0
+- --bezel|-b <rx> <ry>    Bezel width relative to screen size (see below)
+- --window-size <Nx> <Ny> resolution of window we are opening (if windowed mode)
+
+
+
+
+### Bezels
+
+Most displays have some non-trivially sized bezels on the sides of the
+displays; so the rightmost pixel on one screen and the leftmost pixel
+on the one right of that do have a greater distance than two pixels on
+the same screen. To avoid the distortions that would be caused by that
+DisplayWald allows for specifying a bezel width; if specified, this
+will cause the server to create a virtual screen that is larger than
+the number of actual pixels on the screen (ie, there are virtual
+pixels where the bezels are). 
+
+To specify the bezel width, use the "--bezel|-b <rx> <ry>"
+parameters. Those two parameters specify the width of the bezels (in x
+and y direction) relative to the actual screen. Eg, if your actual
+screen area is 30cmx20cm, you have a left and right bezel of 5mm each,
+a top bezel of 2mm, and a bottom bezel of 10mm, then the total bezel
+width in x direction is 2x5mm=10mm, and a total bezel height of
+2mm+10mm=12mm. Relative to a screen area of x=300mm and y=200mm those
+bezels values of x=10mm and y=12mm bezels are x=10/300=0.0333 and
+y=12/200=0.6; so you would use "--bezel 0.3333 0.6".
+
+
+
+
+
+
+
 ## Programming Guide
 
 ### Code organization
