@@ -129,9 +129,9 @@ namespace ospray {
       // now, send to all affected displays ...
       // -------------------------------------------------------
 
-      static std::atomic<int> numSent;
-      numSent += tile.region.size().product();
-      DW_DBG(printf("region %i %i - %i %i displays %i %i - %i %i : %i\n",
+      DW_DBG(static std::atomic<int> numSent;
+             numSent += tile.region.size().product();
+             printf("region %i %i - %i %i displays %i %i - %i %i : %i\n",
                     tile.region.lower.x,
                     tile.region.lower.y,
                     tile.region.upper.x,
