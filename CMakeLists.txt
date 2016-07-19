@@ -18,7 +18,6 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
-CONFIGURE_OSPRAY()
 CONFIGURE_MPI()
 
 # mini-scene graph viewer for _geometry_ (intentionally simple)
