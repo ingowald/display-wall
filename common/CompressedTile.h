@@ -43,6 +43,8 @@ namespace ospray {
       box2i region;
       /*! number of ints in pixel[] buffer from one y to y+1 */
       int pitch;
+      /*! which eye this goes to (if stereo) */
+      int eye;
       /*! pointer to buffer of pixels; this buffer is 'pitch' int-sized pixels wide */
       uint32_t *pixel;
     };

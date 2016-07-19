@@ -73,7 +73,8 @@ namespace ospray {
       vec2i totalPixelsInWall() const;
       void writeTile(const PlainTile &tile);
       void endFrame();
-      
+
+      const WallConfig *getWallConfig() const { return wallConfig; }
     private:
       void receiveDisplayConfig();
       /*! establish connection between 'me' and the remote service */

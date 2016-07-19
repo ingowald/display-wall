@@ -28,6 +28,12 @@ namespace ospray {
     using std::endl;
     using std::cout;
 
+    /* for development/debugging purposes of stereo-code on non-stereo
+       enabeld machines only: do NOT actually try to initialize stero
+       (since we don't haev it on our machien that'd fail) but rather
+       alternatively display left and right images */
+// #define DBG_FAKE_STEREO 1
+
     GlutWindow::GlutWindow(const vec2i &size, 
                            const std::string &title, 
                            bool stereo)
@@ -49,9 +55,14 @@ namespace ospray {
       else 
         singleton = this;
         
-      if (stereo) 
+      if (stereo) {
+#if DBG_FAKE_STEREO
+        std::cout << "WARNING: Faking stereo for now - this will NOT work for real stereo devices" << std::endl;
+        glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
+#else
         glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STEREO);
-      else
+#endif
+      } else
         glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
         
       glutInitWindowSize( size.x, size.y );
@@ -96,6 +107,16 @@ namespace ospray {
           // printf("no frame buffer set, yet\n");
         } else if (stereo) {
           // with stereo drawing ...
+#if DBG_FAKE_STEREO
+          static int frameID = 0;
+          if ((++frameID) % 2) {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
+          } else {
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+            glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
+          }
+#else
           glDrawBuffer(GL_BACK_LEFT);
           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
@@ -104,6 +125,7 @@ namespace ospray {
           glDrawBuffer(GL_BACK_RIGHT); 
           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
+#endif
         } else {
           assert(rightEye == NULL);
           // no stereo

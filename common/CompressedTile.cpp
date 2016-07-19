@@ -45,6 +45,7 @@ namespace ospray {
 
     struct CompressedTileHeader {
       box2i region;
+      int   eye;
       unsigned char payload[0];
     };
 
@@ -72,6 +73,7 @@ namespace ospray {
       CompressedTileHeader *header = (CompressedTileHeader *)this->data;
       header->region.lower = begin;
       header->region.upper = end;
+      header->eye = tile.eye;
 
 #if TURBO_JPEG                       
       unsigned char *jpegBuffer = header->payload; //NULL;
@@ -98,6 +100,7 @@ namespace ospray {
     {
       const CompressedTileHeader *header = (const CompressedTileHeader *)data;
       tile.region = header->region;
+      tile.eye = header->eye;
       vec2i size = tile.region.size();
       assert(tile.pixel != NULL);
 #if TURBO_JPEG                       

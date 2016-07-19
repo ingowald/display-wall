@@ -59,8 +59,12 @@ namespace ospray {
         / (pixelsPerDisplay+bezelPixelsPerDisplay());
       // vec2i hi
       // = divRoundUp(pixelRegion.upper,pixelsPerDisplay+bezelPixelsPerDisplay());
-      if (hi.x > numDisplays.x || hi.y > numDisplays.y) 
+      if (hi.x > numDisplays.x || hi.y > numDisplays.y) {
+        PING; 
+        PRINT(pixelRegion);
+        PRINT(totalPixels());
         throw std::runtime_error("invalid region in 'affectedDispalys()')");
+      }
       return box2i(lo,hi);
     }
 

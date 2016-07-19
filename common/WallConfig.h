@@ -85,6 +85,7 @@ namespace ospray {
       box2i  affectedDisplays(const box2i &pixelRegion) const;
 
       void   print() const;
+      inline bool doStereo() const { return stereo; }
 
       vec2i numDisplays;
       vec2i pixelsPerDisplay;

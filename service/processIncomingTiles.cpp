@@ -25,11 +25,6 @@ namespace ospray {
              displayGroup.rank,displayGroup.size);
       
       const box2i displayRegion = wallConfig.regionOfRank(displayGroup.rank);
-      if (wallConfig.stereo)
-        // for doing stereo, we have to somehow pass left/right eye
-        // info with the tile; this isn't done yet
-        throw std::runtime_error("stereo not implemented yet");
-
 #define THREADED_RECV 8
         
 #if THREADED_RECV
@@ -53,16 +48,16 @@ namespace ospray {
             const box2i globalRegion = plain.region;
             size_t numWritten = 0;
             const uint32_t *tilePixel = plain.pixel;
-            uint32_t *localPixel = recv_l;
+            uint32_t *localPixel = plain.eye ? recv_r : recv_l;
             for (int iy=globalRegion.lower.y;iy<globalRegion.upper.y;iy++) {
-
+              
               if (iy < displayRegion.lower.y) continue;
               if (iy >= displayRegion.upper.y) continue;
-          
+              
               for (int ix=globalRegion.lower.x;ix<globalRegion.upper.x;ix++) {
                 if (ix < displayRegion.lower.x) continue;
                 if (ix >= displayRegion.upper.x) continue;
-
+                
                 const vec2i globalCoord(ix,iy);
                 const vec2i tileCoord = globalCoord-plain.region.lower;
                 const vec2i localCoord = globalCoord-displayRegion.lower;

@@ -69,7 +69,45 @@ namespace ospray {
             plainTile.pixel[i] = rgba;
           }
           plainTile.region = tile.region;
-          client->writeTile(plainTile);
+          bool stereo = client->getWallConfig()->doStereo();
+          if (!stereo) {
+            plainTile.eye = 0;
+            client->writeTile(plainTile);
+          } else {
+            int trueScreenWidth = client->getWallConfig()->totalPixels().x;
+            if (plainTile.region.upper.x <= trueScreenWidth) {
+              // all on left eye
+              plainTile.eye = 0;
+              client->writeTile(plainTile);
+            } else if (plainTile.region.lower.x >= trueScreenWidth) {
+              // all on right eye - just shift coordinates
+              plainTile.region.lower.x -= trueScreenWidth;
+              plainTile.region.upper.x -= trueScreenWidth;
+              plainTile.eye = 1;
+              client->writeTile(plainTile);
+            } else {
+              // overlaps both sides - split it up
+              const int original_lower_x = plainTile.region.lower.x;
+              const int original_upper_x = plainTile.region.upper.x;
+              // first, 'clip' the tile and write 'clipped' one to the left side
+              plainTile.region.lower.x = original_lower_x - trueScreenWidth;
+              plainTile.region.upper.x = trueScreenWidth;
+              plainTile.eye = 0;
+              client->writeTile(plainTile);
+
+              // now, move right true to the left, clip on lower side, and shift pixels
+              plainTile.region.lower.x = 0;
+              plainTile.region.upper.x = original_upper_x - trueScreenWidth;
+              // since pixels didn't start at 'trueWidth' but at 'lower.x', we have to shift
+              int numPixelsInRegion = plainTile.region.size().y*plainTile.pitch;
+              int shift = trueScreenWidth - original_lower_x;
+              plainTile.eye = 1;
+              for (int i=0;i<numPixelsInRegion;i++)
+                plainTile.pixel[i] = plainTile.pixel[i+shift];
+              client->writeTile(plainTile);
+            }
+              
+          }
         }
  
         //! \brief common function to help printf-debugging 
@@ -89,7 +127,6 @@ namespace ospray {
       {
         std::string streamName = getParamString("streamName","");
         std::cout << "#osp:dw: trying to establish connection to display wall service at MPI port " << streamName << std::endl;
-        PING;
         client = new dw::Client(mpi::worker.comm,streamName);
       }
 
