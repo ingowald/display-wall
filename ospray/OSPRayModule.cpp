@@ -84,9 +84,9 @@ namespace ospray {
             //int b = std::min(255,int(255.f*tile.b[i]));
             
             float gamma = 1.8;
-            int r = clampColorComponent(simpleGammaCorrection(tile.r[i], gamma);
-            int g = clampColorComponent(simpleGammaCorrection(tile.g[i], gamma);
-            int b = clampColorComponent(simpleGammaCorrection(tile.b[i], gamma);
+            int r = clampColorComponent(simpleGammaCorrection(tile.r[i], gamma));
+            int g = clampColorComponent(simpleGammaCorrection(tile.g[i], gamma));
+            int b = clampColorComponent(simpleGammaCorrection(tile.b[i], gamma));
             
             int rgba = (b<<24)|(g<<16)|(r<<8);
             plainTile.pixel[i] = rgba;
