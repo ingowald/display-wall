@@ -66,7 +66,7 @@ namespace ospray {
         
         virtual unsigned int packColor(float r, float g, float b, float a)
         {
-            return (a<<32) | (b<<24) | (g<<16) | (r<<8);
+            return (((unsigned int)a)<<32) | (((unsigned int)b)<<24) | (((unsigned int)g)<<16) | (((unsigned int)r)<<8);
         }
       
         /*! called right after the tile got accumulated; i.e., the
