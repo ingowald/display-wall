@@ -61,7 +61,7 @@ namespace ospray {
         
         virtual float simpleGammaCorrection(float c, float gamma)
         {
-            return exp(c, 1.0f/gamma);
+            return expf(c, 1.0f/gamma);
         }
         
         virtual unsigned int packColor(float r, float g, float b, float a)
