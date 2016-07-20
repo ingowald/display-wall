@@ -51,6 +51,23 @@ namespace ospray {
         // /*! gets called once at the end of the frame */
         virtual void endFrame() 
         { client->endFrame(); }
+        
+        virtual int clampColorComponent(float c)
+        {
+            int r = 255*c;
+            if (r < 0) r = 0;
+            if (r > 255) r = 255;
+        }
+        
+        virtual float simpleGammaCorrection(float c, float gamma)
+        {
+            return exp(c, 1.0f/gamma);
+        }
+        
+        virtual unsigned int packColor(float r, float g, float b, float a)
+        {
+            return (a<<32) | (b<<24) | (g<<16) | (r<<8);
+        }
       
         /*! called right after the tile got accumulated; i.e., the
           tile's RGBA values already contain the accu-buffer blended
@@ -62,9 +79,15 @@ namespace ospray {
           PlainTile plainTile(vec2i(TILE_SIZE));
           plainTile.pitch = TILE_SIZE;
           for (int i=0;i<TILE_SIZE*TILE_SIZE;i++) {
-            int r = std::min(255,int(255.f*tile.r[i]));
-            int g = std::min(255,int(255.f*tile.g[i]));
-            int b = std::min(255,int(255.f*tile.b[i]));
+            //int r = std::min(255,int(255.f*tile.r[i]));
+            //int g = std::min(255,int(255.f*tile.g[i]));
+            //int b = std::min(255,int(255.f*tile.b[i]));
+            
+            float gamma = 1.8;
+            int r = clampColorComponent(simpleGammaCorrection(tile.r[i], gamma);
+            int g = clampColorComponent(simpleGammaCorrection(tile.g[i], gamma);
+            int b = clampColorComponent(simpleGammaCorrection(tile.b[i], gamma);
+            
             int rgba = (b<<24)|(g<<16)|(r<<8);
             plainTile.pixel[i] = rgba;
           }
