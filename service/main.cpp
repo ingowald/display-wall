@@ -136,6 +136,10 @@ namespace ospray {
         setenv("DISPLAY", ":0", 1);
       }
       
+      
+      printf("Rank %d, display (%d, %d), host %s\n", world.rank, displayID.x, displayID.y, world.name);
+      
+      
       glutInit(&ac, (char **) av);
       
       GlutWindow glutWindow(windowSize,windowPosition,title,doStereo);
