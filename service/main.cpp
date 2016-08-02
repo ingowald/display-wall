@@ -57,7 +57,7 @@ namespace ospray {
 
     extern "C" int main(int ac, char **av)
     {
-      glutInit(&ac, (char **) av);
+      
       MPI::init(ac,av);
       MPI::Group world(MPI_COMM_WORLD);
 
@@ -120,19 +120,23 @@ namespace ospray {
         setenv("DISPLAY", ":0.0", 1);
       }
       
-      if (world.rank == 1) {
+      else if (world.rank == 1) {
         setenv("DISPLAY", ":0.1", 1);
       }
       
-      if (world.rank == 2) {
+      else if (world.rank == 2) {
         setenv("DISPLAY", ":0.0", 1);
       }
       
-      if (world.rank == 3) {
+      else if (world.rank == 3) {
         setenv("DISPLAY", ":0.1", 1);
       }
       
+      else {
+        setenv("DISPLAY", ":0", 1);
+      }
       
+      glutInit(&ac, (char **) av);
       
       GlutWindow glutWindow(windowSize,windowPosition,title,doStereo);
       
