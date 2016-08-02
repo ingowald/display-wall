@@ -116,19 +116,19 @@ namespace ospray {
       char title[1000];
       sprintf(title,"display (%i,%i)",displayID.x,displayID.y);
       
-      if (world.rank == 0) {
-        setenv("DISPLAY", ":0.0", 1);
-      }
-      
-      else if (world.rank == 2) {
-        setenv("DISPLAY", ":0.1", 1);
-      }
-      
-      else if (world.rank == 1) {
+      if (world.rank == 2) {
         setenv("DISPLAY", ":0.0", 1);
       }
       
       else if (world.rank == 3) {
+        setenv("DISPLAY", ":0.0", 1);
+      }
+      
+      else if (world.rank == 0) {
+        setenv("DISPLAY", ":0.1", 1);
+      }
+      
+      else if (world.rank == 1) {
         setenv("DISPLAY", ":0.1", 1);
       }
       
