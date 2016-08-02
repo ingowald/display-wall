@@ -120,11 +120,11 @@ namespace ospray {
         setenv("DISPLAY", ":0.0", 1);
       }
       
-      else if (world.rank == 1) {
+      else if (world.rank == 2) {
         setenv("DISPLAY", ":0.1", 1);
       }
       
-      else if (world.rank == 2) {
+      else if (world.rank == 1) {
         setenv("DISPLAY", ":0.0", 1);
       }
       
