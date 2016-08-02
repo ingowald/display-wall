@@ -111,7 +111,7 @@ void ProcessConfigFile (const char * fileName)
     displayWallCommand += " --no-head-node";
   }
   
-  s = mpirunCommand + " -np " + toString(nScreens) + " -hosts " + hostList + " " + displayWallCommand;
+  s = mpirunCommand + " -ppn 1 -np " + toString(nScreens) + " -hosts " + hostList + " " + displayWallCommand;
   
   printf("launching with: %s\n", s.c_str());
   

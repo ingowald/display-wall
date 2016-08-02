@@ -24,6 +24,8 @@ SOFTWARE.
 #include "GlutWindow.h"
 #include <thread>
 
+#include <stdlib.h>
+
 namespace ospray {
   namespace dw {
 
@@ -65,6 +67,7 @@ namespace ospray {
       WallConfig::DisplayArrangement arrangement = WallConfig::Arrangement_xy;
       vec2f relativeBezelWidth(0.f);
       vec2i windowSize(320,240);
+      vec2i windowPosition(0,0);
       vec2i numDisplays(0,0);
 
       for (int i=1;i<ac;i++) {
@@ -112,12 +115,33 @@ namespace ospray {
 
       char title[1000];
       sprintf(title,"display (%i,%i)",displayID.x,displayID.y);
-      GlutWindow glutWindow(windowSize,title,doStereo);
+      
+      if (world.rank == 0) {
+        setenv("DISPLAY", ":0.0", 1);
+      }
+      
+      if (world.rank == 1) {
+        setenv("DISPLAY", ":0.1", 1);
+      }
+      
+      if (world.rank == 2) {
+        setenv("DISPLAY", ":0.0", 1);
+      }
+      
+      if (world.rank == 3) {
+        setenv("DISPLAY", ":0.1", 1);
+      }
+      
+      
+      
+      GlutWindow glutWindow(windowSize,windowPosition,title,doStereo);
       
       WallConfig wallConfig(numDisplays,windowSize,
                             relativeBezelWidth,
                             arrangement,doStereo);
-
+      
+      std::string configFileName = "configuration.xml";
+      
       if (world.rank == 0) {
         cout << "#osp:dw: display wall config is" << endl;
         wallConfig.print();

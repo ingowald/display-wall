@@ -23,6 +23,7 @@ SOFTWARE.
 #pragma once
 
 #include "ospcommon/box.h"
+#include <string>
 
 // macro to turn on/off debugging printouts for the display wall
 #define DW_DBG(a) /* nothing */
