@@ -30,10 +30,6 @@ SOFTWARE.
 namespace ospray {
   namespace dw {
 
-    void foo()
-    {
-    }
-
     struct DisplayWaldPixelOp : public ospray::PixelOp 
     {
       struct Instance : public ospray::PixelOp::Instance 

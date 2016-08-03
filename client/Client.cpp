@@ -112,14 +112,18 @@ namespace ospray {
       MPI_CALL(Barrier(displayGroup.comm));
     }
 
+    __thread void *g_compressor = NULL;
+
     void Client::writeTile(const PlainTile &tile)
     {
       assert(wallConfig);
 
-      void *compressor = CompressedTile::createCompressor();
+      if (!g_compressor) g_compressor = CompressedTile::createCompressor();
+      void *compressor = g_compressor;
+      
       CompressedTile encoded;
       encoded.encode(compressor,tile);
-      CompressedTile::freeCompressor(compressor);
+      // CompressedTile::freeCompressor(compressor);
 
       // -------------------------------------------------------
       // compute displays affected by this tile
