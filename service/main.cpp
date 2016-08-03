@@ -40,9 +40,10 @@ namespace ospray {
       }
       cout << "usage: ./ospDisplayWald [args]*" << endl << endl;
       cout << "w/ args: " << endl;
-      cout << "--width|-w <numDisplays.x>     - num displays in x direction" << endl;
-      cout << "--height|-h <numDisplays.y>    - num displays in y direction" << endl;
-      cout << "--[no-]head-node | -[n]hn      - use / do not use dedicated head node" << endl;
+      cout << "--width|-w <numDisplays.x>        - num displays in x direction" << endl;
+      cout << "--height|-h <numDisplays.y>       - num displays in y direction" << endl;
+      cout << "--window-size|-ws <res_x> <res_y> - window size (in pixels)" << endl;
+      cout << "--[no-]head-node | -[n]hn         - use / do not use dedicated head node" << endl;
       exit(!err.empty());
     }
 
