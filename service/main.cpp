@@ -116,6 +116,7 @@ namespace ospray {
       char title[1000];
       sprintf(title,"display (%i,%i)",displayID.x,displayID.y);
       
+      /*
       if (world.rank == 2) {
         setenv("DISPLAY", ":0.0", 1);
       }
@@ -139,10 +140,14 @@ namespace ospray {
       
       printf("Rank %d, display (%d, %d), host %s\n", world.rank, displayID.x, displayID.y, world.name);
       
+      //exit(1);
+      */
       
       glutInit(&ac, (char **) av);
       
-      GlutWindow glutWindow(windowSize,windowPosition,title,doStereo);
+      bool doFullScreen = false;
+      
+      GlutWindow glutWindow(windowSize,windowPosition,title,doFullScreen,doStereo);
       
       WallConfig wallConfig(numDisplays,windowSize,
                             relativeBezelWidth,

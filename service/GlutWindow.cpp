@@ -36,7 +36,8 @@ namespace ospray {
 
     GlutWindow::GlutWindow(const vec2i &size,
                            const vec2i &position,
-                           const std::string &title, 
+                           const std::string &title,
+                           bool doFullScreen, 
                            bool stereo)
       : size(size),
         position(position),
@@ -46,7 +47,8 @@ namespace ospray {
         rightEye(NULL),
         stereo(stereo),
         receivedFrameID(-1),
-        displayedFrameID(-1)
+        displayedFrameID(-1),
+        doFullScreen(doFullScreen)
     {
     }
 
@@ -72,6 +74,9 @@ namespace ospray {
       windowID = glutCreateWindow(title.c_str());
       glutDisplayFunc(glutDisplay);
       glutIdleFunc(glutIdle);
+      if (doFullScreen) {
+        glutFullScreen();
+      }
     }
 
     void GlutWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)

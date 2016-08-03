@@ -38,7 +38,8 @@ namespace ospray {
 
     struct GlutWindow 
     {
-      GlutWindow(const vec2i &size, const vec2i &position, const std::string &title, bool stereo=false);
+      GlutWindow(const vec2i &size, const vec2i &position, const std::string &title,
+                 bool doFullScreen, bool stereo=false);
       void setFrameBuffer(const uint32_t *leftEye,
                           const uint32_t *rightEye);
       void display(); 
@@ -64,6 +65,7 @@ namespace ospray {
       int receivedFrameID;
       int displayedFrameID;
       static GlutWindow *singleton;
+      bool doFullScreen;
     };
     
   } // ::ospray::dw
