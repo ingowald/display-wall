@@ -27,7 +27,7 @@ SOFTWARE.
 namespace ospray {
   namespace dw {
 
-    int desiredInfoPortNum = 2903;
+    //    ;
 
     using std::cout; 
     using std::endl;
@@ -40,10 +40,13 @@ namespace ospray {
         parameters of the display wall, etc. Note this (should) be
         only called by outward facing rank 0 */
     void openInfoPort(const std::string &mpiPortName,
-                      const WallConfig &wallConfig)
+                      const WallConfig &wallConfig,
+                      int desiredInfoPortNum)
     {
       socket_t listener = NULL;
       int nextPortToTry = desiredInfoPortNum;
+      PING; PRINT(desiredInfoPortNum);
+
       while (listener == NULL) {
         listener = bind(nextPortToTry);
         if (listener != NULL)
@@ -61,7 +64,7 @@ namespace ospray {
       static std::thread portListenerThread([=](){
           while (1) {
             socket_t client = listen(listener);
-            //            printf("#osp:dw: got client connection...\n");
+            printf("#osp:dw: got client connection...\n");
             write(client,mpiPortName);
             write(client,wallConfig.totalPixels().x);
             write(client,wallConfig.totalPixels().y);
@@ -84,15 +87,19 @@ namespace ospray {
       vec2f relativeBezelWidth = wallConfig.relativeBezelWidth;
       int arrangement = wallConfig.displayArrangement;
       int stereo      = wallConfig.stereo;
+      PING; fflush(0);
       /*! if we're the head node, let's 'fake' a single display to the client */
       if (me.size == 1) {
         pixelsPerDisplay = wallConfig.totalPixels();
         numDisplays = vec2i(1);
         relativeBezelWidth = vec2f(0.f);
       }
+      PING; fflush(0);
 
+      PING; fflush(0);
       MPI_CALL(Bcast(&numDisplays,2,MPI_INT,
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
+      PING; fflush(0);
       MPI_CALL(Bcast(&pixelsPerDisplay,2,MPI_INT,
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
       MPI_CALL(Bcast(&relativeBezelWidth,2,MPI_FLOAT,
@@ -108,7 +115,8 @@ namespace ospray {
         (either the head node, or all display nodes if no head node is
         being used) should have an proper MPI communicator set up to
         talk to the client rank(s) */
-    MPI::Group Server::waitForConnection(const MPI::Group &outwardFacingGroup)
+    MPI::Group Server::waitForConnection(const MPI::Group &outwardFacingGroup,
+                                         int desiredInfoPortNum)
     {
       MPI_Comm outside;
       outwardFacingGroup.barrier();
@@ -128,15 +136,18 @@ namespace ospray {
         /* open the port that we give display wall info on
            (capabilities and MPI port tname of the service); do that
            only on rank 0 (or head node, if used) */
-        openInfoPort(portName,wallConfig);
+        openInfoPort(portName,wallConfig,desiredInfoPortNum);
         
 
+      cout << "WAITING FOR ACCEPT" << endl;
       /* accept / wait for outside connection on this port */
       MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,outwardFacingGroup.comm,&outside));
       if (outwardFacingGroup.rank == 0) {
         printf("communication established...\n");
       }
+      PING;
       sendConfigToClient(MPI::Group(outside),outwardFacingGroup,wallConfig);
+      PING;
 
       outwardFacingGroup.barrier();
 
@@ -181,7 +192,8 @@ namespace ospray {
     /*! note: this runs in its own thread */
     void Server::setupCommunications(const WallConfig &wallConfig,
                                      bool hasHeadNode,
-                                     const MPI::Group &world)
+                                     const MPI::Group &world,
+                                     int desiredInfoPortNum)
     {
       // =======================================================
       /* create inter- and intra-comms to communicate between displays
@@ -222,7 +234,8 @@ namespace ospray {
           // =======================================================
           // DISPATCHER
           // =======================================================
-          MPI::Group outsideConnection = waitForConnection(dispatchGroup);
+          MPI::Group outsideConnection
+            = waitForConnection(dispatchGroup,desiredInfoPortNum);
           runDispatcher(outsideConnection,displayGroup,wallConfig);
         } else {
           // =======================================================
@@ -235,7 +248,8 @@ namespace ospray {
         // =======================================================
         // TILE RECEIVER
         // =======================================================
-        MPI::Group incomingTiles = waitForConnection(displayGroup);
+        MPI::Group incomingTiles
+          = waitForConnection(displayGroup,desiredInfoPortNum);
         processIncomingTiles(incomingTiles);
       }
     }
@@ -244,18 +258,21 @@ namespace ospray {
                                  const WallConfig &wallConfig,
                                  bool hasHeadNode,
                                  DisplayCallback displayCallback,
-                                 void *objectForCallback)
+                                 void *objectForCallback,
+                                 int desiredInfoPortNum)
     {
       assert(Server::singleton == NULL);
       Server::singleton = new Server(MPI::Group(comm),wallConfig,hasHeadNode,
-                                     displayCallback,objectForCallback);
+                                     displayCallback,objectForCallback,
+                                     desiredInfoPortNum);
     }
 
     Server::Server(const MPI::Group &world,
                    const WallConfig &wallConfig,
                    const bool hasHeadNode,
                    DisplayCallback displayCallback,
-                   void *objectForCallback)
+                   void *objectForCallback,
+                   int desiredInfoPortNum)
       : me(world.dup()),
         wallConfig(wallConfig),
         hasHeadNode(hasHeadNode),
@@ -274,7 +291,7 @@ namespace ospray {
       // ospray::dw::displayCallback = displayCallback;
       // ospray::dw::objectForCallback = objectForCallback;
       commThread = new std::thread([=]() {
-          setupCommunications(wallConfig,hasHeadNode,me);
+          setupCommunications(wallConfig,hasHeadNode,me,desiredInfoPortNum);
         });
       
       if (hasHeadNode && me.rank == 0) {

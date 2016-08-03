@@ -45,7 +45,8 @@ namespace ospray {
              const WallConfig &wallConfig,
              const bool hasHeadNode,
              DisplayCallback displayCallback,
-             void *objectForCallback);
+             void *objectForCallback,
+             int desiredInfoPortNum);
 
       /*! the code that actually receives the tiles, decompresses
           them, and writes them into the current (write-)frame buffer */
@@ -54,13 +55,15 @@ namespace ospray {
       /*! note: this runs in its own thread */
       void setupCommunications(const WallConfig &wallConfig,
                                bool hasHeadNode,
-                               const MPI::Group &world);
+                               const MPI::Group &world,
+                               int desiredInfoPortNum);
       /*! open an MPI port and wait for the client(s) to connect to this
         port after this function terminates, all outward facing procs
         (either the head node, or all display nodes if no head node is
         being used) should have an proper MPI communicator set up to
         talk to the client rank(s) */
-      MPI::Group waitForConnection(const MPI::Group &outwardFacingGroup);
+      MPI::Group waitForConnection(const MPI::Group &outwardFacingGroup,
+                                   int desiredInfoPortNum);
 
       /*! allocate the frame buffers for left/right eye and recv/display, respectively */
       void allocateFrameBuffers();
@@ -98,7 +101,8 @@ namespace ospray {
                                  const WallConfig &wallConfig,
                                  bool hasHeadNode,
                                  DisplayCallback displayCallback,
-                                 void *objectForCallback);
+                                 void *objectForCallback,
+                                 int desiredInfoPortNum);
 
   } // ::ospray::dw
 } // ::ospray

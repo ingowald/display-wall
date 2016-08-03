@@ -118,12 +118,16 @@ namespace ospray {
     {
       assert(wallConfig);
 
+      CompressedTile encoded;
+#if 1
       if (!g_compressor) g_compressor = CompressedTile::createCompressor();
       void *compressor = g_compressor;
-      
-      CompressedTile encoded;
       encoded.encode(compressor,tile);
-      // CompressedTile::freeCompressor(compressor);
+#else
+      void *compressor = CompressedTile::createCompressor();
+      encoded.encode(compressor,tile);
+      CompressedTile::freeCompressor(compressor);
+#endif
 
       // -------------------------------------------------------
       // compute displays affected by this tile

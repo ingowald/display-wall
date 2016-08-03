@@ -70,6 +70,7 @@ namespace ospray {
       vec2i windowSize(320,240);
       vec2i windowPosition(0,0);
       vec2i numDisplays(0,0);
+      int desiredInfoPortNum=2903;
 
       for (int i=1;i<ac;i++) {
         const std::string arg = av[i];
@@ -99,10 +100,14 @@ namespace ospray {
           relativeBezelWidth.x = atof(av[++i]);
           assert(i+1<ac);
           relativeBezelWidth.y = atof(av[++i]);
+        } else if (arg == "--port" || arg == "-p") {
+          desiredInfoPortNum = atoi(av[++i]);
         } else {
           usage("unkonwn arg "+arg);
         } 
       }
+
+      PRINT(desiredInfoPortNum);
 
       if (numDisplays.x < 1) 
         usage("no display wall width specified (--width <w>)");
@@ -170,7 +175,7 @@ namespace ospray {
       }
 
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
-                              displayNewFrame,&glutWindow);
+                              displayNewFrame,&glutWindow,desiredInfoPortNum);
       
       if (hasHeadNode && world.rank == 0) {
         /* no window on head node */
