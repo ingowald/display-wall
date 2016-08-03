@@ -34,17 +34,21 @@ namespace ospray {
        alternatively display left and right images */
 // #define DBG_FAKE_STEREO 1
 
-    GlutWindow::GlutWindow(const vec2i &size, 
-                           const std::string &title, 
+    GlutWindow::GlutWindow(const vec2i &size,
+                           const vec2i &position,
+                           const std::string &title,
+                           bool doFullScreen, 
                            bool stereo)
       : size(size),
+        position(position),
         title(title),
         windowID(-1),
         leftEye(NULL),
         rightEye(NULL),
         stereo(stereo),
         receivedFrameID(-1),
-        displayedFrameID(-1)
+        displayedFrameID(-1),
+        doFullScreen(doFullScreen)
     {
     }
 
@@ -66,9 +70,13 @@ namespace ospray {
         glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
         
       glutInitWindowSize( size.x, size.y );
+      glutInitWindowPosition( position.x, position.y );
       windowID = glutCreateWindow(title.c_str());
       glutDisplayFunc(glutDisplay);
       glutIdleFunc(glutIdle);
+      if (doFullScreen) {
+        glutFullScreen();
+      }
     }
 
     void GlutWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)

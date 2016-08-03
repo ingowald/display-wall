@@ -30,6 +30,14 @@ ADD_EXECUTABLE(ospDisplayWald
   Server.cpp
   )
 
+ADD_EXECUTABLE(ospLaunchDisplayWald
+  ../common/tinyxml/tinyxml.cpp
+  ../common/tinyxml/tinystr.cpp
+  ../common/tinyxml/tinyxmlerror.cpp
+  ../common/tinyxml/tinyxmlparser.cpp
+  launch.cpp
+  )
+
 TARGET_LINK_LIBRARIES(ospDisplayWald
   ospray_dw_common
   ${OPENGL_LIBRARIES}

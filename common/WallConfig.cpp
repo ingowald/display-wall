@@ -24,7 +24,7 @@ SOFTWARE.
 
 namespace ospray {
   namespace dw {
-
+    
     WallConfig::WallConfig(const vec2i &numDisplays, 
                            const vec2i &pixelsPerDisplay,
                            const vec2f &relativeBezelWidth,
@@ -39,6 +39,7 @@ namespace ospray {
       if (displayArrangement != Arrangement_xy)
         throw std::runtime_error("non-default arrangments of displays not yet implemented");
     }
+    
     
     vec2i  WallConfig::displayIDofRank(int rank) const
     {
