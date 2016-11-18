@@ -18,8 +18,6 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
-# if mpi mode is enabled, we have to configure the right mpi
-# compiler etc.
 INCLUDE(${PROJECT_SOURCE_DIR}/cmake/glut.cmake)
 
 ADD_EXECUTABLE(ospDisplayWald
@@ -28,14 +26,6 @@ ADD_EXECUTABLE(ospDisplayWald
   Dispatcher.cpp
   processIncomingTiles.cpp
   Server.cpp
-  )
-
-ADD_EXECUTABLE(ospLaunchDisplayWald
-  ../common/tinyxml/tinyxml.cpp
-  ../common/tinyxml/tinystr.cpp
-  ../common/tinyxml/tinyxmlerror.cpp
-  ../common/tinyxml/tinyxmlparser.cpp
-  launch.cpp
   )
 
 TARGET_LINK_LIBRARIES(ospDisplayWald

@@ -21,7 +21,7 @@
  */
 
 #include <stdlib.h>
-#include "../common/tinyxml/tinyxml.h"
+#include "tinyxml/tinyxml.h"
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -35,16 +35,16 @@ inline std::string toString (int i) {
   return convert.str();
 }
 
-void ProcessConfigFile (const char * fileName)
+std::string ProcessConfigFile(const char *fileName)
 {
   bool useHeadNode = false;
   
   TiXmlDocument doc( fileName );
   bool loadOkay = doc.LoadFile();
   
-  if (!loadOkay)
-  {
-    printf( "Could not load displaywall configuration file %s. Error='%s'. Exiting.\n", fileName, doc.ErrorDesc() );
+  if (!loadOkay) {
+    printf( "Could not load displaywall configuration file %s. Error='%s'. Exiting.\n",
+            fileName, doc.ErrorDesc() );
     exit( 1 );
   } else {
     //printf("Successfully loaded displayWald configuration file.\n");
@@ -57,18 +57,19 @@ void ProcessConfigFile (const char * fileName)
     exit( 1 );
   }
   
-  std::ofstream launchScript("launchDisplayWaldScript");
-  std::string s;
   std::string mpirunCommand = "mpirun";
   std::string hostList = "";
   std::string displayWallCommand = "./ospDisplayWald";
   
   int nScreens = 0;
   int nNodes = 0;
-  int numTilesWidth = 0, numTilesHeight = 0;
-  int defaultScreenWidth = 0, defaultScreenHeight = 0;
+  int numTilesWidth = 0;
+  int numTilesHeight = 0;
+  int defaultScreenWidth = 0;
+  int defaultScreenHeight = 0;
   
-  for (TiXmlElement *child = xml->FirstChildElement(); child!=NULL; child = child->NextSiblingElement()) {
+  for (TiXmlElement *child = xml->FirstChildElement(); child != NULL;
+       child = child->NextSiblingElement()) {
     
     if ( COMPARE( child->Value(), "dimensions" ) ) {
       child->QueryIntAttribute( "numTilesWidth", &numTilesWidth);
@@ -111,20 +112,21 @@ void ProcessConfigFile (const char * fileName)
     displayWallCommand += " --no-head-node";
   }
   
-  s = mpirunCommand + " -ppn 1 -np " + toString(nScreens) + " -hosts " + hostList + " " + displayWallCommand;
+  displayWallCommand = (mpirunCommand
+                        + " -ppn 1 -np " + toString(nScreens)
+                        + " -hosts " + hostList + " " + displayWallCommand);
+                        
+  printf("launching with: %s\n", displayWallCommand.c_str());
   
-  printf("launching with: %s\n", s.c_str());
-  
-  launchScript << s;
-  
-  launchScript.close();
+  return displayWallCommand;
 }
 
 int main(int ac, char **av)
 {
-  ProcessConfigFile("configuration.xml");
-  
-  system("chmod +x launchDisplayWaldScript; ./launchDisplayWaldScript");
+  const std::string launchCommand = ProcessConfigFile("configuration.xml");
+  std::cout << "Launching display wall with command\n> " << launchCommand << std::endl;
+  int rc = system(launchCommand.c_str());
+  assert(rc == 0);
   
   return 0;
 }

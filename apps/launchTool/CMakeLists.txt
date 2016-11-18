@@ -18,24 +18,12 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
+ADD_EXECUTABLE(ospLaunchDisplayWald
+  tinyxml/tinyxml.cpp
+  tinyxml/tinystr.cpp
+  tinyxml/tinyxmlerror.cpp
+  tinyxml/tinyxmlparser.cpp
+  launch.cpp
+  )
 
-# ------------------------------------------------------------------
-# the actual client library
-# ------------------------------------------------------------------
-ADD_LIBRARY(ospray_displayWald_client SHARED
-  Client.cpp
-  API.cpp
-  )
-TARGET_LINK_LIBRARIES(ospray_displayWald_client
-  ospray_dw_common
-  )
-  
-# ------------------------------------------------------------------
-# simple tool to print info about a running display wall service
-# ------------------------------------------------------------------
-ADD_EXECUTABLE(ospDwPrintInfo
-  printInfo.cpp
-  )
-TARGET_LINK_LIBRARIES(ospDwPrintInfo
-  ospray_displayWald_client
-  )
+

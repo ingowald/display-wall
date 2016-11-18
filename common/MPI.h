@@ -43,7 +43,8 @@ namespace ospray {
         Group(MPI_Comm comm=MPI_COMM_NULL);
         Group dup() const;
         void barrier() const { MPI_CALL(Barrier(comm)); }
-
+        inline operator MPI_Comm () const { return comm; }
+        
         MPI_Comm comm;
         int rank, size;
         int isInter;

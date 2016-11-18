@@ -20,7 +20,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
-#include "Client.h"
+//#include "../../client/Client.h"
+#include "../common/MPI.h"
+#include "ospray/display-wall.h"
+
 #include "ospray/common/tasking/parallel_for.h"
 // std
 #include <vector>
@@ -34,13 +37,20 @@ namespace ospray {
     using std::endl;
     using std::flush;
 
-    void renderFrame(const MPI::Group &me, Client *client)
+    OSPDisplayWallInfo dwInfo;
+    
+    void renderFrame(const MPI::Group &me, OSPDisplayWall dw
+                     // Client *client
+                     )
     {
       static size_t frameID = 0;
       static double lastTime = getSysTime();
 
-      assert(client);
-      const vec2i totalPixels = client->totalPixelsInWall();
+      // assert(client);
+      assert(dw);
+      
+      const vec2i totalPixels(dwInfo.totalPixels_x,dwInfo.totalPixels_y);
+      // const vec2i totalPixels = client->totalPixelsInWall();
       vec2i tileSize(32);
       // vec2i tileSize(160,10);
       vec2i numTiles = divRoundUp(totalPixels,tileSize);
@@ -49,31 +59,37 @@ namespace ospray {
           if ((tileID % me.size) != me.rank)
             return;
 
-          PlainTile tile(tileSize);
           const int tile_x = tileID % numTiles.x;
           const int tile_y = tileID / numTiles.x;
-          
-          tile.region.lower = vec2i(tile_x,tile_y)*tileSize;
-          tile.region.upper = min(tile.region.lower+tileSize,totalPixels);
 
-          for (int iy=tile.region.lower.y;iy<tile.region.upper.y;iy++)
-            for (int ix=tile.region.lower.x;ix<tile.region.upper.x;ix++) {
+          // tile coordinates
+          const vec2i lower = vec2i(tile_x,tile_y)*tileSize;
+          const vec2i upper = min(lower+tileSize,totalPixels);
+          uint32_t pixel[tileSize.x*tileSize.y];
+          // clear the tile in case it extends beyond the valid range
+          for (int i=0;i<tileSize.x*tileSize.y;i++)
+            pixel[i] = 0;
+          for (int iy=lower.y;iy<upper.y;iy++)
+            for (int ix=lower.x;ix<upper.x;ix++) {
               int r = (frameID+ix) % 255;
               int g = (frameID+iy) % 255;
               int b = (frameID+ix+iy) % 255;
               int rgba = (b<<16)+(g<<8)+(r<<0);
-              tile.pixel[(ix-tile.region.lower.x)+tileSize.x*(iy-tile.region.lower.y)] = rgba;
+              pixel[(ix-lower.x)+tileSize.x*(iy-lower.y)] = rgba;
             }
 
-          assert(client);
-          client->writeTile(tile);
+          // assert(client);
+          assert(dw);
+          // client->writeTile(tile);
+          ospDwWriteTile(dw,0,lower.x,lower.y,tileSize.x,tileSize.y,pixel);
         });
       ++frameID;
       double thisTime = getSysTime();
       printf("done rendering frame %li (%f fps)\n",frameID,1.f/(thisTime-lastTime));
       lastTime = thisTime;
       // me.barrier();
-      client->endFrame();
+      // client->endFrame();
+      ospDwEndFrame(dw);
     }
 
     extern "C" int main(int ac, char **av)
@@ -99,17 +115,21 @@ namespace ospray {
       const std::string hostName = nonDashArgs[0];
       const int portNum = atoi(nonDashArgs[1].c_str());
 
-      ServiceInfo serviceInfo;
-      serviceInfo.getFrom(hostName,portNum);
-
+      // ServiceInfo dwInfo;
+      // dwInfo.getFrom(hostName,portNum);
+      OSPDwGetInfo(&dwInfo,hostName.c_str(),portNum);
+      if (dwInfo.totalPixels_x <= 0)
+        throw std::runtime_error("could not get display wall configuration.");
+      
       // -------------------------------------------------------
       // args parsed, now do the job
       // -------------------------------------------------------
       MPI::Group me = world.dup();
-      Client *client = new Client(me,serviceInfo.mpiPortName);
-
+      // Client *client = new Client(me,dwInfo.mpiPortName);
+      OSPDisplayWall dw = ospDwInit(me,dwInfo.mpiPortName);
+      
       while (1)
-        renderFrame(me,client);
+        renderFrame(me,dw);
 
       return 0;
     }

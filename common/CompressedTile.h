@@ -32,12 +32,13 @@ namespace ospray {
     /*! a plain, uncompressed tile */
     struct PlainTile 
     {
-      PlainTile(const vec2i &tileSize)
+      PlainTile(const vec2i &tileSize, uint32_t *_pixel=NULL)
         : pitch(tileSize.x),
-          pixel(new uint32_t [tileSize.x*tileSize.y])
+          pixel(_pixel?_pixel:new uint32_t [tileSize.x*tileSize.y]),
+          myPixels(_pixel?false:true)
       {}
       ~PlainTile()
-      { delete[] pixel; }
+      { if (myPixels) delete[] pixel; }
       inline vec2i size() const { return region.size(); }
       /*! region of pixels that this tile corresponds to */
       box2i region;
@@ -47,6 +48,8 @@ namespace ospray {
       int eye;
       /*! pointer to buffer of pixels; this buffer is 'pitch' int-sized pixels wide */
       uint32_t *pixel;
+      /*! true if we allocated the pixels; false if not */
+      bool myPixels;
     };
 
     /*! encoded representation of a tile - eventually to use true
