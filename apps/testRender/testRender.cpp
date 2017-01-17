@@ -24,7 +24,7 @@ SOFTWARE.
 #include "../common/MPI.h"
 #include "ospray/display-wall.h"
 
-#include "ospray/common/tasking/parallel_for.h"
+#include "ospcommon/tasking/parallel_for.h"
 // std
 #include <vector>
 

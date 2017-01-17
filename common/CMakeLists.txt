@@ -59,6 +59,7 @@ ADD_LIBRARY(ospray_dw_common
 TARGET_LINK_LIBRARIES(ospray_dw_common
   ${MPI_CXX_LIBRARIES}
   ${TURBOJPEG_LIBRARY}
+  ospray_common
   ospray
   )
 

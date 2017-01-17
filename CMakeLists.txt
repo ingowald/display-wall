@@ -1,4 +1,4 @@
-## Copyright (c) 2016 Ingo Wald
+## Copyright (c) 2016-2017 Ingo Wald
 ## 
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -18,37 +18,70 @@
 ## OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 ## SOFTWARE.
 
-OSPRAY_CONFIGURE_MPI()
+set(CMAKE_DISABLE_SOURCE_CHANGES ON)
+set(CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 
-# mini-scene graph viewer for _geometry_ (intentionally simple)
-OPTION(OSPRAY_MODULE_DISPLAY_WALD "DisplayWald" ON)
+PROJECT(DISPLAY_WALD)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.6)
 
+SET(OSPRAY_DISPLAY_WALD_VERSION_MAJOR 0)
+SET(OSPRAY_DISPLAY_WALD_VERSION_MINOR 1)
+SET(OSPRAY_DISPLAY_WALD_VERSION_PATCH 0)
+
+IF (THIS_IS_OSPRAY)
+  # ------------------------------------------------------------------
+  # configure this as a ospray module ...
+  # ------------------------------------------------------------------
+  OPTION(OSPRAY_MODULE_DISPLAY_WALD "DisplayWald" ON)
+
+  SET(OSPRAY_DIR ${PROJECT_SOURCE_DIR})
+ELSE ()
+  # ------------------------------------------------------------------
+  # build as stand-alone library
+  # ------------------------------------------------------------------
+
+  # when building as a stand-alone library we still need ospcommon and
+  # components
+  find_path(OSPRAY_DIR
+    NAMES ospray/version.h.in
+    PATHS /home/wald/Projects/ospray $ENV{OSPRAY_DIR}
+    )
+  IF (NOT OSPRAY_DIR)
+    MESSAGE("OSPRAY DIR NOT FOUND")
+  ENDIF()
+  SET(OSPRAY_DIR /home/wald/Projects/ospray)
+ENDIF()
+
+SET(COMPONENTS_DIR ${OSPRAY_DIR}/components)
+SET(OSPCOMMON_DIR ${COMPONENTS_DIR}/ospcommon)
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${PROJECT_SOURCE_DIR}/cmake)
+SET(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${OSPCOMMON_DIR}/cmake)
+
+INCLUDE(glut)
+INCLUDE(mpi)
+
+INCLUDE(macros)
+OSPRAY_CONFIGURE_COMPILER()
+CONFIGURE_MPI()
+
+INCLUDE_DIRECTORIES(${COMPONENTS_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
+INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+ADD_SUBDIRECTORY(${COMPONENTS_DIR} ${CMAKE_BINARY_DIR}/builddir-components)
+ADD_SUBDIRECTORY(common)
+ADD_SUBDIRECTORY(service)
+ADD_SUBDIRECTORY(client)
+ADD_SUBDIRECTORY(apps)
+
+# the ospray pixelop one can use to get a ospray frame buffer to the
+# display wall
 IF (OSPRAY_MODULE_DISPLAY_WALD)
   
-  SET(OSPRAY_DISPLAY_WALD_VERSION_MAJOR 0)
-  SET(OSPRAY_DISPLAY_WALD_VERSION_MINOR 1)
-  SET(OSPRAY_DISPLAY_WALD_VERSION_PATCH 0)
-  
+  INCLUDE_DIRECTORIES(${OSPRAY_DIR}/ospray/include)
   SET(OSPRAY_DISPLAY_WALD_VERSION
     ${OSPRAY_DISPLAY_WALD_VERSION_MAJOR}.${OSPRAY_DISPLAY_WALD_VERSION_MINOR}.${OSPRAY_DISPLAY_WALD_VERSION_PATCH})
-
-  IF (NOT OSPRAY_BUILD_MPI_DEVICE)
-    MESSAGE("Error: DisplayWald module needs the MPI device turned on")
-  ENDIF()
   
-  INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/ospray/include)
-  INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/)
-  INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR}/include)
-
-  ADD_SUBDIRECTORY(common)
-  ADD_SUBDIRECTORY(service)
-  ADD_SUBDIRECTORY(client)
-  ADD_SUBDIRECTORY(apps)
-
-  # the ospray pixelop one can use to get a ospray frame buffer to the
-  # display wall
   ADD_SUBDIRECTORY(ospray)
-
-  SET(DISPLAY_WALD_DIR  "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "" FORCE)
-
 ENDIF()
+
