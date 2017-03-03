@@ -20,11 +20,14 @@
 
 # if mpi mode is enabled, we have to configure the right mpi
 # compiler etc.
-INCLUDE(${PROJECT_SOURCE_DIR}/cmake/glut.cmake)
+#INCLUDE(${PROJECT_SOURCE_DIR}/cmake/glut.cmake)
+
+INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/apps/exampleViewer/common/glfw/include)
 
 ADD_EXECUTABLE(ospDisplayWald
   main.cpp
-  GlutWindow.cpp
+  #  GlutWindow.cpp
+  glfwWindow.cpp
   Dispatcher.cpp
   processIncomingTiles.cpp
   Server.cpp
@@ -40,7 +43,8 @@ ADD_EXECUTABLE(ospLaunchDisplayWald
 
 TARGET_LINK_LIBRARIES(ospDisplayWald
   ospray_dw_common
+#  ${OPENGL_LIBRARIES}
+#  ${GLUT_LIBRARIES}
   ${OPENGL_LIBRARIES}
-  ${GLUT_LIBRARIES}
   )
   

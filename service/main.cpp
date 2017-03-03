@@ -21,7 +21,8 @@ SOFTWARE.
 */
 
 #include "Server.h"
-#include "GlutWindow.h"
+//#include "GlutWindow.h"
+#include "glfwWindow.h"
 #include <thread>
 
 #include <stdlib.h>

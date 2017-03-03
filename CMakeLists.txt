@@ -1,4 +1,4 @@
-## Copyright (c) 2016 Ingo Wald
+## Copyright (c) 2016-2017 Ingo Wald
 ## 
 ## Permission is hereby granted, free of charge, to any person obtaining a copy
 ## of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
 
 CONFIGURE_MPI()
 
-# mini-scene graph viewer for _geometry_ (intentionally simple)
+# simple display-wall driver
 OPTION(OSPRAY_MODULE_DISPLAY_WALD "DisplayWald" ON)
 
 IF (OSPRAY_MODULE_DISPLAY_WALD)
@@ -32,10 +32,6 @@ IF (OSPRAY_MODULE_DISPLAY_WALD)
   SET(OSPRAY_DISPLAY_WALD_VERSION
     ${OSPRAY_DISPLAY_WALD_VERSION_MAJOR}.${OSPRAY_DISPLAY_WALD_VERSION_MINOR}.${OSPRAY_DISPLAY_WALD_VERSION_PATCH})
 
-  IF (NOT OSPRAY_BUILD_MPI_DEVICE)
-    MESSAGE(ERROR "DisplayWald module needs the MPI device turned on")
-  ENDIF()
-  
   INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/ospray/include)
   INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/)
   INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})

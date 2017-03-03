@@ -23,12 +23,8 @@ SOFTWARE.
 #pragma once
 
 #include "FrameBuffer.h"
-// opengl for windowing stuff
-#ifdef __APPLE__
-#include <GLUT/glut.h>
-#else
-#include <GL/glut.h>
-#endif
+// windowing stuff
+#include "GLFW/glfw3.h"
 // std
 #include <mutex>
 #include <condition_variable>
@@ -36,9 +32,9 @@ SOFTWARE.
 namespace ospray {
   namespace dw {
 
-    struct GlutWindow 
+    struct ImGuiWindow 
     {
-      GlutWindow(const vec2i &size, const vec2i &position, const std::string &title,
+      ImGuiWindow(const vec2i &size, const vec2i &position, const std::string &title,
                  bool doFullScreen, bool stereo=false);
       void setFrameBuffer(const uint32_t *leftEye,
                           const uint32_t *rightEye);
@@ -48,23 +44,20 @@ namespace ospray {
       void run();
       void create();
       
-      static void glutIdle();
-      static void glutDisplay();
-      
     private:
       const uint32_t *leftEye;
       const uint32_t *rightEye;
       std::mutex mutex;
       std::condition_variable newFrameAvail;
       std::condition_variable newFrameDisplayed;
-
+GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
       int windowID;
       vec2i size, position;
       std::string title;
       bool stereo;
       int receivedFrameID;
       int displayedFrameID;
-      static GlutWindow *singleton;
+      static ImGuiWindow *singleton;
       bool doFullScreen;
     };
     

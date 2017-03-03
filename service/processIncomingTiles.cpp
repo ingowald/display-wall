@@ -1,7 +1,7 @@
 
 #include "Server.h"
 #include "../common/CompressedTile.h"
-#include "ospray/common/tasking/parallel_for.h"
+#include "ospcommon/tasking/parallel_for.h"
 #include <mutex>
 #ifdef OSPRAY_TASKING_TBB
 # include <tbb/task_scheduler_init.h>
