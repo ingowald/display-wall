@@ -22,6 +22,8 @@
 # compiler etc.
 #INCLUDE(${PROJECT_SOURCE_DIR}/cmake/glut.cmake)
 
+find_package(OpenGL REQUIRED)
+
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/apps/exampleViewer/common/glfw/include)
 
 ADD_EXECUTABLE(ospDisplayWald
@@ -43,8 +45,8 @@ ADD_EXECUTABLE(ospLaunchDisplayWald
 
 TARGET_LINK_LIBRARIES(ospDisplayWald
   ospray_dw_common
-#  ${OPENGL_LIBRARIES}
 #  ${GLUT_LIBRARIES}
+  glfw
   ${OPENGL_LIBRARIES}
   )
   

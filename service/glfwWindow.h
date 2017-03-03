@@ -32,9 +32,9 @@ SOFTWARE.
 namespace ospray {
   namespace dw {
 
-    struct ImGuiWindow 
+    struct GLFWindow 
     {
-      ImGuiWindow(const vec2i &size, const vec2i &position, const std::string &title,
+      GLFWindow(const vec2i &size, const vec2i &position, const std::string &title,
                  bool doFullScreen, bool stereo=false);
       void setFrameBuffer(const uint32_t *leftEye,
                           const uint32_t *rightEye);
@@ -57,7 +57,7 @@ GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
       bool stereo;
       int receivedFrameID;
       int displayedFrameID;
-      static ImGuiWindow *singleton;
+      static GLFWindow *singleton;
       bool doFullScreen;
     };
     

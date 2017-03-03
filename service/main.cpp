@@ -53,7 +53,7 @@ namespace ospray {
                          const uint32_t *right, 
                          void *object)
     {
-      GlutWindow *window = (GlutWindow*)object;
+      GLFWindow *window = (GLFWindow*)object;
       window->setFrameBuffer(left,right);
     }
 
@@ -150,11 +150,11 @@ namespace ospray {
       //exit(1);
       */
       
-      glutInit(&ac, (char **) av);
+      // glfInit(&ac, (char **) av);
       
       bool doFullScreen = false;
       
-      GlutWindow glutWindow(windowSize,windowPosition,title,doFullScreen,doStereo);
+      GLFWindow *glfWindow = NULL;
       
       WallConfig wallConfig(numDisplays,windowSize,
                             relativeBezelWidth,
@@ -172,17 +172,18 @@ namespace ospray {
         cout << "#osp:dw: running a dedicated headnode on rank 0; "
              << "not creating a window there" << endl;
       } else {
-        glutWindow.create();
+        glfWindow = new GLFWindow(windowSize,windowPosition,title,doFullScreen,doStereo);
+        // glfWindow.create();
       }
 
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
-                              displayNewFrame,&glutWindow,desiredInfoPortNum);
+                              displayNewFrame,&glfWindow,desiredInfoPortNum);
       
       if (hasHeadNode && world.rank == 0) {
         /* no window on head node */
         throw std::runtime_error("should never reach this ...");
       } else {
-        glutWindow.run();
+        glfWindow->run();
       }
       // commThread.join();
       return 0;

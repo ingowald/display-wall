@@ -23,7 +23,7 @@ SOFTWARE.
 // ospray pixel 
 #include "ospray/fb/PixelOp.h"
 #include "ospray/fb/FrameBuffer.h"
-#include "ospray/mpi/MPICommon.h"
+#include "mpiCommon/MPICommon.h"
 // displaywald client
 #include "../client/Client.h"
 

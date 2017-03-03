@@ -34,7 +34,7 @@ namespace ospray {
        alternatively display left and right images */
 // #define DBG_FAKE_STEREO 1
 
-    ImGuiWindow::ImGuiWindow(const vec2i &size,
+    GLFWindow::GLFWindow(const vec2i &size,
                            const vec2i &position,
                            const std::string &title,
                            bool doFullScreen, 
@@ -50,6 +50,11 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
+      if (!glfwInit())
+        {
+          fprintf(stderr, "Failed to initialize GLFW\n");
+          exit(EXIT_FAILURE);
+        }
     }
 
 
@@ -57,10 +62,10 @@ namespace ospray {
     // {
     // }
 
-    void ImGuiWindow::create()
+    void GLFWindow::create()
     {
       if (singleton != NULL)
-        throw std::runtime_error("can only have one active ImGuiWindow right now ....");
+        throw std::runtime_error("can only have one active GLFWindow right now ....");
       else 
         singleton = this;
         
@@ -91,7 +96,7 @@ namespace ospray {
       glfwShowWindow(window);
     }
 
-    void ImGuiWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
+    void GLFWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
     {
       {
         std::lock_guard<std::mutex> lock(mutex);
@@ -112,12 +117,12 @@ namespace ospray {
 #endif
     }
 
-    // void ImGuiWindow::glutIdle() 
+    // void GLFWindow::glutIdle() 
     // { 
     //   glutPostRedisplay(); 
     // }
 
-    void ImGuiWindow::display() 
+    void GLFWindow::display() 
     {
       {
         std::unique_lock<std::mutex> lock(mutex);
@@ -162,23 +167,23 @@ namespace ospray {
       }
     }
 
-    // void ImGuiWindow::glutDisplay() 
+    // void GLFWindow::glutDisplay() 
     // {
     //   assert(singleton);
     //   singleton->display();
     // }
 
-    vec2i ImGuiWindow::getSize() const 
+    vec2i GLFWindow::getSize() const 
     { 
       return size; 
     }
 
-    bool ImGuiWindow::doesStereo() const
+    bool GLFWindow::doesStereo() const
     { 
       return stereo; 
     }
     
-    void ImGuiWindow::run() 
+    void GLFWindow::run() 
     { 
       while (!glfwWindowShouldClose(window)) {
         PING;
@@ -191,7 +196,7 @@ namespace ospray {
       }
     }
     
-    ImGuiWindow *ImGuiWindow::singleton = NULL;
+    GLFWindow *GLFWindow::singleton = NULL;
     
   } // ::ospray::dw
 } // ::ospray

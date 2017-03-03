@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 #include "Client.h"
-#include "ospray/common/tasking/parallel_for.h"
+#include "ospcommon/tasking/parallel_for.h"
 // std
 #include <vector>
 
