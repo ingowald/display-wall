@@ -106,10 +106,16 @@ namespace ospray {
         } else {
           usage("unkonwn arg "+arg);
         } 
+
       }
 
+      printf("bla\n\n");
       PRINT(desiredInfoPortNum);
-
+      PING;
+      PING;
+      PING;
+      PRINT(desiredInfoPortNum);
+      
       if (numDisplays.x < 1) 
         usage("no display wall width specified (--width <w>)");
       if (numDisplays.y < 1) 
@@ -168,6 +174,10 @@ namespace ospray {
       }
       
       
+      PING;
+      PING;
+      PING;
+
       if (hasHeadNode && world.rank == 0) {
         cout << "#osp:dw: running a dedicated headnode on rank 0; "
              << "not creating a window there" << endl;
@@ -176,13 +186,23 @@ namespace ospray {
         // glfWindow.create();
       }
 
+      PING;
+      PING;
+      PING;
+
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
                               displayNewFrame,&glfWindow,desiredInfoPortNum);
       
+      PING;
+      sleep(1);
+      PING;
+
       if (hasHeadNode && world.rank == 0) {
         /* no window on head node */
         throw std::runtime_error("should never reach this ...");
       } else {
+        PING;
+        PRINT(glfWindow);
         glfWindow->run();
       }
       // commThread.join();

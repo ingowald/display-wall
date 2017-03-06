@@ -50,8 +50,8 @@ namespace ospray {
       std::mutex mutex;
       std::condition_variable newFrameAvail;
       std::condition_variable newFrameDisplayed;
-GLFWwindow* window = glfwCreateWindow(640, 480, "My Title", NULL, NULL);
-      int windowID;
+
+      GLFWwindow* window { nullptr };
       vec2i size, position;
       std::string title;
       bool stereo;

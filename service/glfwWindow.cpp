@@ -28,21 +28,14 @@ namespace ospray {
     using std::endl;
     using std::cout;
 
-    /* for development/debugging purposes of stereo-code on non-stereo
-       enabeld machines only: do NOT actually try to initialize stero
-       (since we don't haev it on our machien that'd fail) but rather
-       alternatively display left and right images */
-// #define DBG_FAKE_STEREO 1
-
     GLFWindow::GLFWindow(const vec2i &size,
-                           const vec2i &position,
-                           const std::string &title,
-                           bool doFullScreen, 
-                           bool stereo)
+                         const vec2i &position,
+                         const std::string &title,
+                         bool doFullScreen, 
+                         bool stereo)
       : size(size),
         position(position),
         title(title),
-        windowID(-1),
         leftEye(NULL),
         rightEye(NULL),
         stereo(stereo),
@@ -50,20 +43,19 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
+      PING;
       if (!glfwInit())
         {
           fprintf(stderr, "Failed to initialize GLFW\n");
           exit(EXIT_FAILURE);
         }
+      create();
     }
 
 
-    // void refresh(GLFWwindow *window)
-    // {
-    // }
-
     void GLFWindow::create()
     {
+      PING;
       if (singleton != NULL)
         throw std::runtime_error("can only have one active GLFWindow right now ....");
       else 
@@ -185,6 +177,9 @@ namespace ospray {
     
     void GLFWindow::run() 
     { 
+      PING;
+      PRINT(this);
+      PRINT(window);
       while (!glfwWindowShouldClose(window)) {
         PING;
 
