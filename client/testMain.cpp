@@ -58,10 +58,17 @@ namespace ospray {
 
           for (int iy=tile.region.lower.y;iy<tile.region.upper.y;iy++)
             for (int ix=tile.region.lower.x;ix<tile.region.upper.x;ix++) {
+#if 0
               int r = (frameID+ix) % 255;
               int g = (frameID+iy) % 255;
               int b = (frameID+ix+iy) % 255;
               int rgba = (b<<16)+(g<<8)+(r<<0);
+#else
+              int r = (frameID+(ix>>2)) % 255;
+              int g = (frameID+(iy>>2)) % 255;
+              int b = (frameID+(ix>>2)+(iy>>2)) % 255;
+              int rgba = (b<<16)+(g<<8)+(r<<0);
+#endif
               tile.pixel[(ix-tile.region.lower.x)+tileSize.x*(iy-tile.region.lower.y)] = rgba;
             }
 

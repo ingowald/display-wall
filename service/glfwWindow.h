@@ -47,8 +47,6 @@ namespace ospray {
       static vec2i getScreenSize() 
       {
         const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
-        PRINT(mode->width);
-        PRINT(mode->height);
         return vec2i(mode->width,mode->height);
       }
 

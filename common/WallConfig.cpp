@@ -52,6 +52,37 @@ namespace ospray {
       that pixel region */
     box2i  WallConfig::affectedDisplays(const box2i &pixelRegion) const
     {
+#if 1
+      vec2i lo, hi;
+      for (int ix=0;ix<numDisplays.x;ix++) {
+        int ix_begin = ix*(pixelsPerDisplay.x+bezelPixelsPerDisplay().x);
+        int ix_end   = ix_begin+pixelsPerDisplay.x+bezelPixelsPerDisplay().x;
+        
+        if (ix_end > pixelRegion.lower.x) { lo.x = ix; break; }
+      }
+      for (int ix=numDisplays.x-1;ix>=0;--ix) {
+        int ix_begin = ix*(pixelsPerDisplay.x+bezelPixelsPerDisplay().x);
+        int ix_end   = ix_begin+pixelsPerDisplay.x+bezelPixelsPerDisplay().x;
+        
+        if (ix_begin < pixelRegion.upper.x) { hi.x = ix+1; break; }
+      }
+      for (int iy=0;iy<numDisplays.y;iy++) {
+        int iy_begin = iy*(pixelsPerDisplay.y+bezelPixelsPerDisplay().y);
+        int iy_end   = iy_begin+pixelsPerDisplay.y+bezelPixelsPerDisplay().y;
+        
+        if (iy_end > pixelRegion.lower.y) { lo.y = iy; break; }
+      }
+      for (int iy=numDisplays.y-1;iy>=0;--iy) {
+        int iy_begin = iy*(pixelsPerDisplay.y+bezelPixelsPerDisplay().y);
+        int iy_end   = iy_begin+pixelsPerDisplay.y+bezelPixelsPerDisplay().y;
+        
+        if (iy_begin < pixelRegion.upper.y) { hi.y = iy+1; break; }
+      }
+      
+      box2i result(lo,hi);
+      
+      return result;
+#else
       vec2i lo
         = (pixelRegion.lower+bezelPixelsPerDisplay())
         / (pixelsPerDisplay+bezelPixelsPerDisplay());
@@ -67,6 +98,7 @@ namespace ospray {
         throw std::runtime_error("invalid region in 'affectedDispalys()')");
       }
       return box2i(lo,hi);
+#endif
     }
 
 

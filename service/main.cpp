@@ -144,20 +144,36 @@ namespace ospray {
 
       if (doFullScreen)
         windowSize = GLFWindow::getScreenSize();
-      PING;
-      PRINT(windowSize);
 
       GLFWindow *glfWindow = NULL;
       
       WallConfig wallConfig(numDisplays,windowSize,
                             relativeBezelWidth,
                             arrangement,doStereo);
-      
+
       std::string configFileName = "configuration.xml";
       
       if (world.rank == 0) {
         cout << "#osp:dw: display wall config is" << endl;
         wallConfig.print();
+
+        std::cout << "wall arrangement: " << std::endl;
+        for (int i=0;i<world.size;i++) {
+          box2i region = wallConfig.regionOfRank(i);
+          std::cout << "region of rank #" << i << " : " << region << std::endl;
+        }
+      }
+      world.barrier();
+      char name[1000];
+
+      for (int i=0;i<world.size;i++) {
+        if (i == world.rank) {
+          gethostname(name,1000);
+          printf("rank %i running on host %s\n",world.rank,name);
+          fflush(0);
+          usleep(10000);
+        }
+        world.barrier();
       }
 
       if (hasHeadNode && world.rank == 0) {

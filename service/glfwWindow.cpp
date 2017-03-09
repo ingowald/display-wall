@@ -61,10 +61,8 @@ namespace ospray {
       
    
       if (doFullScreen) {
-        std::cout << "fullscreen window" << std::endl;
         auto *monitor = glfwGetPrimaryMonitor();
         const GLFWvidmode* mode = glfwGetVideoMode(monitor);
-        PRINT(glfwGetPrimaryMonitor());
         size = getScreenSize();
         glfwWindowHint(GLFW_AUTO_ICONIFY,false);
         glfwWindowHint(GLFW_RED_BITS, mode->redBits);
@@ -74,16 +72,9 @@ namespace ospray {
         
         window = glfwCreateWindow(mode->width, mode->height,
                                   title.c_str(), monitor, nullptr);
-
-
-        PRINT(size);
-        PRINT(mode->width);
-        PRINT(mode->height);
       } else {
-        PING; PRINT(size);
         window = glfwCreateWindow(size.x,size.y,title.c_str(),
                                   NULL,NULL);
-        PRINT(window);
       }
       glfwMakeContextCurrent(window);
       //      gl3wInit();
@@ -173,11 +164,10 @@ namespace ospray {
         
         glfwPollEvents();
 
-        vec2i newSize(0);
-        glfwGetFramebufferSize(window, &newSize.x, &newSize.y);
+        vec2i currentSize(0);
+        glfwGetFramebufferSize(window, &currentSize.x, &currentSize.y);
 
-        PRINT(newSize);
-        glViewport(0, 0, newSize.x, newSize.y);
+        glViewport(0, 0, currentSize.x, currentSize.y);
         glClear(GL_COLOR_BUFFER_BIT);
 
         display();

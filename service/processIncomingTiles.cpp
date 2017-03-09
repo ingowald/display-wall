@@ -25,14 +25,14 @@ namespace ospray {
              displayGroup.rank,displayGroup.size);
       
       const box2i displayRegion = wallConfig.regionOfRank(displayGroup.rank);
-      //#define THREADED_RECV 8
+
+#define THREADED_RECV 8
         
 #if THREADED_RECV
       std::mutex displayMutex;
 # ifdef OSPRAY_TASKING_TBB
       tbb::task_scheduler_init tbb_init;
 # endif
-adfasdfa
       parallel_for(THREADED_RECV,[&](int) {
 #endif
           void *decompressor = CompressedTile::createDecompressor();
@@ -78,6 +78,7 @@ adfasdfa
               std::lock_guard<std::mutex> lock(displayMutex);
 #endif
               numWrittenThisFrame += numWritten;
+              // printf("written %li / %li\n",numWrittenThisFrame,numExpectedThisFrame);
               if (numWrittenThisFrame == numExpectedThisFrame) {
                 DW_DBG(printf("display %i/%i has a full frame!\n",
                               displayGroup.rank,displayGroup.size));

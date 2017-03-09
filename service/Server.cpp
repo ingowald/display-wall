@@ -84,19 +84,14 @@ namespace ospray {
       vec2f relativeBezelWidth = wallConfig.relativeBezelWidth;
       int arrangement = wallConfig.displayArrangement;
       int stereo      = wallConfig.stereo;
-      PING; fflush(0);
       /*! if we're the head node, let's 'fake' a single display to the client */
       if (me.size == 1) {
         pixelsPerDisplay = wallConfig.totalPixels();
         numDisplays = vec2i(1);
         relativeBezelWidth = vec2f(0.f);
       }
-      PING; fflush(0);
-
-      PING; fflush(0);
       MPI_CALL(Bcast(&numDisplays,2,MPI_INT,
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
-      PING; fflush(0);
       MPI_CALL(Bcast(&pixelsPerDisplay,2,MPI_INT,
                      me.rank==0?MPI_ROOT:MPI_PROC_NULL,outside.comm));
       MPI_CALL(Bcast(&relativeBezelWidth,2,MPI_FLOAT,
@@ -136,15 +131,12 @@ namespace ospray {
         openInfoPort(portName,wallConfig,desiredInfoPortNum);
         
 
-      cout << "WAITING FOR ACCEPT" << endl;
       /* accept / wait for outside connection on this port */
       MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,outwardFacingGroup.comm,&outside));
       if (outwardFacingGroup.rank == 0) {
         printf("communication established...\n");
       }
-      PING;
       sendConfigToClient(MPI::Group(outside),outwardFacingGroup,wallConfig);
-      PING;
 
       outwardFacingGroup.barrier();
 
