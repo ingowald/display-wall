@@ -47,6 +47,7 @@ namespace ospray {
     private:
       const uint32_t *leftEye;
       const uint32_t *rightEye;
+
       std::mutex mutex;
       std::condition_variable newFrameAvail;
       std::condition_variable newFrameDisplayed;

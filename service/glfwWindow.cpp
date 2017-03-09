@@ -43,7 +43,6 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
-      PING;
       if (!glfwInit())
         {
           fprintf(stderr, "Failed to initialize GLFW\n");
@@ -55,7 +54,6 @@ namespace ospray {
 
     void GLFWindow::create()
     {
-      PING;
       if (singleton != NULL)
         throw std::runtime_error("can only have one active GLFWindow right now ....");
       else 
@@ -91,35 +89,31 @@ namespace ospray {
     void GLFWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
     {
       {
-        std::lock_guard<std::mutex> lock(mutex);
+        std::lock_guard<std::mutex> lock(this->mutex);
         this->leftEye = leftEye;
         this->rightEye = rightEye;
         receivedFrameID++;
         newFrameAvail.notify_one();
       }
-#if 0
-      {
-        std::unique_lock<std::mutex> lock(mutex);
-        // cout << "waiting for display (" << displayedFrameID << ")" << endl;
-        newFrameDisplayed.wait(lock, [&]{
-            // cout << "waiting for display (" << displayedFrameID << ")" << endl;
-            return displayedFrameID==receivedFrameID;
-          });
-      }
-#endif
+// #if 0
+//       {
+//         std::unique_lock<std::mutex> lock(mutex);
+//         // cout << "waiting for display (" << displayedFrameID << ")" << endl;
+//         newFrameDisplayed.wait(lock, [&]{
+//             // cout << "waiting for display (" << displayedFrameID << ")" << endl;
+//             return displayedFrameID==receivedFrameID;
+//           });
+//       }
+// #endif
     }
-
-    // void GLFWindow::glutIdle() 
-    // { 
-    //   glutPostRedisplay(); 
-    // }
 
     void GLFWindow::display() 
     {
       {
         std::unique_lock<std::mutex> lock(mutex);
         newFrameAvail.wait(lock,[this](){return receivedFrameID > displayedFrameID; });
-        
+        glfwMakeContextCurrent(window);
+
         if (!leftEye) {
           // printf("no frame buffer set, yet\n");
         } else if (stereo) {
@@ -159,12 +153,6 @@ namespace ospray {
       }
     }
 
-    // void GLFWindow::glutDisplay() 
-    // {
-    //   assert(singleton);
-    //   singleton->display();
-    // }
-
     vec2i GLFWindow::getSize() const 
     { 
       return size; 
@@ -177,17 +165,20 @@ namespace ospray {
     
     void GLFWindow::run() 
     { 
-      PING;
-      PRINT(this);
-      PRINT(window);
       while (!glfwWindowShouldClose(window)) {
-        PING;
-
-        PING;
-
+        // {
+          // std::lock_guard<std::mutex> lock(mutex);
+          // glfwMakeContextCurrent(window);
+          display();
+          // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+          // if (leftEye) {
+          //   glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
+          // }
+        // }
+        /* draw the display here ... */
         glfwSwapBuffers(window);
         glfwPollEvents();
-        usleep(10000);
+        usleep(1000);
       }
     }
     

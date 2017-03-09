@@ -27,8 +27,6 @@ SOFTWARE.
 namespace ospray {
   namespace dw {
 
-    //    ;
-
     using std::cout; 
     using std::endl;
     using std::flush;
@@ -45,7 +43,6 @@ namespace ospray {
     {
       socket_t listener = NULL;
       int nextPortToTry = desiredInfoPortNum;
-      PING; PRINT(desiredInfoPortNum);
 
       while (listener == NULL) {
         listener = bind(nextPortToTry);
@@ -217,7 +214,6 @@ namespace ospray {
         } else {
           displayGroup = MPI::Group(intraComm);
           MPI_Intercomm_create(intraComm,0,world.comm, 0, 1, &interComm); 
-          // PRINT(interComm);
           dispatchGroup = MPI::Group(interComm);
         }
       } else {

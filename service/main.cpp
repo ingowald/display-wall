@@ -59,7 +59,6 @@ namespace ospray {
 
     extern "C" int main(int ac, char **av)
     {
-      
       MPI::init(ac,av);
       MPI::Group world(MPI_COMM_WORLD);
 
@@ -109,13 +108,6 @@ namespace ospray {
 
       }
 
-      printf("bla\n\n");
-      PRINT(desiredInfoPortNum);
-      PING;
-      PING;
-      PING;
-      PRINT(desiredInfoPortNum);
-      
       if (numDisplays.x < 1) 
         usage("no display wall width specified (--width <w>)");
       if (numDisplays.y < 1) 
@@ -172,37 +164,23 @@ namespace ospray {
         cout << "#osp:dw: display wall config is" << endl;
         wallConfig.print();
       }
-      
-      
-      PING;
-      PING;
-      PING;
 
       if (hasHeadNode && world.rank == 0) {
         cout << "#osp:dw: running a dedicated headnode on rank 0; "
              << "not creating a window there" << endl;
       } else {
         glfWindow = new GLFWindow(windowSize,windowPosition,title,doFullScreen,doStereo);
-        // glfWindow.create();
       }
 
-      PING;
-      PING;
-      PING;
-
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
-                              displayNewFrame,&glfWindow,desiredInfoPortNum);
+                              displayNewFrame,glfWindow,desiredInfoPortNum);
       
-      PING;
       sleep(1);
-      PING;
 
       if (hasHeadNode && world.rank == 0) {
         /* no window on head node */
         throw std::runtime_error("should never reach this ...");
       } else {
-        PING;
-        PRINT(glfWindow);
         glfWindow->run();
       }
       // commThread.join();

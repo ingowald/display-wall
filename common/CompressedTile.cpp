@@ -64,7 +64,7 @@ namespace ospray {
     {
       assert(tile.pixel);
       const vec2i begin = tile.region.lower;
-      const vec2i end = tile.region.upper;
+      const vec2i end   = tile.region.upper;
 
       int numPixels = (end-begin).product();
       this->numBytes = sizeof(CompressedTileHeader)+numPixels*sizeof(int);
@@ -73,7 +73,7 @@ namespace ospray {
       CompressedTileHeader *header = (CompressedTileHeader *)this->data;
       header->region.lower = begin;
       header->region.upper = end;
-      header->eye = tile.eye;
+      header->eye          = tile.eye;
 
 #if TURBO_JPEG                       
       unsigned char *jpegBuffer = header->payload; //NULL;

@@ -25,13 +25,14 @@ namespace ospray {
              displayGroup.rank,displayGroup.size);
       
       const box2i displayRegion = wallConfig.regionOfRank(displayGroup.rank);
-#define THREADED_RECV 8
+      //#define THREADED_RECV 8
         
 #if THREADED_RECV
       std::mutex displayMutex;
 # ifdef OSPRAY_TASKING_TBB
       tbb::task_scheduler_init tbb_init;
 # endif
+adfasdfa
       parallel_for(THREADED_RECV,[&](int) {
 #endif
           void *decompressor = CompressedTile::createDecompressor();
@@ -39,6 +40,7 @@ namespace ospray {
             // -------------------------------------------------------
             // receive one tiles
             // -------------------------------------------------------
+
             CompressedTile encoded;
             encoded.receiveOne(outside);
 
@@ -49,6 +51,7 @@ namespace ospray {
             size_t numWritten = 0;
             const uint32_t *tilePixel = plain.pixel;
             uint32_t *localPixel = plain.eye ? recv_r : recv_l;
+            assert(localPixel);
             for (int iy=globalRegion.lower.y;iy<globalRegion.upper.y;iy++) {
               
               if (iy < displayRegion.lower.y) continue;

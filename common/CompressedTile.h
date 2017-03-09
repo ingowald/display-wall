@@ -36,17 +36,20 @@ namespace ospray {
         : pitch(tileSize.x),
           pixel(new uint32_t [tileSize.x*tileSize.y])
       {}
+
       ~PlainTile()
       { delete[] pixel; }
+
       inline vec2i size() const { return region.size(); }
+
       /*! region of pixels that this tile corresponds to */
-      box2i region;
+      box2i     region;
       /*! number of ints in pixel[] buffer from one y to y+1 */
-      int pitch;
+      int       pitch { 0 };
       /*! which eye this goes to (if stereo) */
-      int eye;
+      int       eye   { 0 };
       /*! pointer to buffer of pixels; this buffer is 'pitch' int-sized pixels wide */
-      uint32_t *pixel;
+      uint32_t *pixel { nullptr };
     };
 
     /*! encoded representation of a tile - eventually to use true
