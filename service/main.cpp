@@ -62,6 +62,10 @@ namespace ospray {
       MPI::init(ac,av);
       MPI::Group world(MPI_COMM_WORLD);
 
+      auto error_callback = [](int error, const char* description) {
+        fprintf(stderr, "glfw error %d: %s\n", error, description);
+      };
+      glfwSetErrorCallback(error_callback);
 
       if (!glfwInit()) {
         fprintf(stderr, "Failed to initialize GLFW\n");

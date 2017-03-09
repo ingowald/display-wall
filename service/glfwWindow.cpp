@@ -53,13 +53,27 @@ namespace ospray {
         throw std::runtime_error("can only have one active GLFWindow right now ....");
       else 
         singleton = this;
-        
+     
+
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
+      glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+      auto *monitor = glfwGetPrimaryMonitor();
+      const GLFWvidmode* mode = glfwGetVideoMode(monitor);
+      
+      
+   
       if (doFullScreen) {
         std::cout << "fullscreen window" << std::endl;
         PRINT(glfwGetPrimaryMonitor());
         size = getScreenSize();
-        window = glfwCreateWindow(size.x,size.y,title.c_str(),
-                                  glfwGetPrimaryMonitor(),NULL);
+        glfwWindowHint(GLFW_AUTO_ICONIFY,false);
+        window = glfwCreateWindow(mode->width, mode->height,
+                                  title.c_str(), monitor, nullptr);
+
+
+        PRINT(size);
+        PRINT(mode->width);
+        PRINT(mode->height);
       } else {
         PING; PRINT(size);
         window = glfwCreateWindow(size.x,size.y,title.c_str(),
@@ -67,7 +81,8 @@ namespace ospray {
         PRINT(window);
       }
       glfwMakeContextCurrent(window);
-      glfwShowWindow(window);
+      //      gl3wInit();
+      // glfwShowWindow(window);
     }
 
     void GLFWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
@@ -96,37 +111,36 @@ namespace ospray {
       {
         std::unique_lock<std::mutex> lock(mutex);
         newFrameAvail.wait(lock,[this](){return receivedFrameID > displayedFrameID; });
-        glfwMakeContextCurrent(window);
         // glfwShowWindow(window);
 
 
         if (!leftEye) {
           // printf("no frame buffer set, yet\n");
-        } else if (stereo) {
-          // with stereo drawing ...
-#if DBG_FAKE_STEREO
-          static int frameID = 0;
-          if ((++frameID) % 2) {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
-          } else {
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
-          }
-#else
-          glDrawBuffer(GL_BACK_LEFT);
-          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-          glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
+//         } else if (stereo) {
+//           // with stereo drawing ...
+// #if DBG_FAKE_STEREO
+//           static int frameID = 0;
+//           if ((++frameID) % 2) {
+//             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//             glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
+//           } else {
+//             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//             glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
+//           }
+// #else
+//           glDrawBuffer(GL_BACK_LEFT);
+//           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
         
-          assert(rightEye != NULL);
-          glDrawBuffer(GL_BACK_RIGHT); 
-          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-          glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
-#endif
+//           assert(rightEye != NULL);
+//           glDrawBuffer(GL_BACK_RIGHT); 
+//           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
+// #endif
         } else {
           assert(rightEye == NULL);
           // no stereo
-          glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+          // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
         }
       
@@ -151,10 +165,19 @@ namespace ospray {
     void GLFWindow::run() 
     { 
       while (!glfwWindowShouldClose(window)) {
-        display();
         
-        glfwSwapBuffers(window);
         glfwPollEvents();
+
+        vec2i newSize(0);
+        glfwGetFramebufferSize(window, &newSize.x, &newSize.y);
+
+        PRINT(newSize);
+        glViewport(0, 0, newSize.x, newSize.y);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        display();
+        glfwSwapBuffers(window);
+
         usleep(1000);
       }
     }
