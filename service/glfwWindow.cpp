@@ -43,11 +43,6 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
-      if (!glfwInit())
-        {
-          fprintf(stderr, "Failed to initialize GLFW\n");
-          exit(EXIT_FAILURE);
-        }
       create();
     }
 
@@ -59,30 +54,19 @@ namespace ospray {
       else 
         singleton = this;
         
-//       if (stereo) {
-// #if DBG_FAKE_STEREO
-//         std::cout << "WARNING: Faking stereo for now - this will NOT work for real stereo devices" << std::endl;
-//         glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-// #else
-//         glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH | GLUT_STEREO);
-// #endif
-//       } else
-        // glutInitDisplayMode(GLUT_RGBA | GLUT_DOUBLE | GLUT_DEPTH);
-
-      window = glfwCreateWindow(size.x,size.y,title.c_str(),
-                                NULL,NULL);
-        
-      // glutInitWindowSize( size.x, size.y );
-      // glutInitWindowPosition( position.x, position.y );
-      // windowID = glutCreateWindow(title.c_str());
-      // glutDisplayFunc(glutDisplay);
-      // glutIdleFunc(glutIdle);
       if (doFullScreen) {
-        throw std::runtime_error("fullscreen not yet implemented");
-        // glutFullScreen();
+        std::cout << "fullscreen window" << std::endl;
+        PRINT(glfwGetPrimaryMonitor());
+        size = getScreenSize();
+        window = glfwCreateWindow(size.x,size.y,title.c_str(),
+                                  glfwGetPrimaryMonitor(),NULL);
+      } else {
+        PING; PRINT(size);
+        window = glfwCreateWindow(size.x,size.y,title.c_str(),
+                                  NULL,NULL);
+        PRINT(window);
       }
-
-      // glfwSetWindowRefreshCallback(window,refresh);
+      glfwMakeContextCurrent(window);
       glfwShowWindow(window);
     }
 
@@ -113,6 +97,8 @@ namespace ospray {
         std::unique_lock<std::mutex> lock(mutex);
         newFrameAvail.wait(lock,[this](){return receivedFrameID > displayedFrameID; });
         glfwMakeContextCurrent(window);
+        // glfwShowWindow(window);
+
 
         if (!leftEye) {
           // printf("no frame buffer set, yet\n");
@@ -144,7 +130,6 @@ namespace ospray {
           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
         }
       
-        // glutSwapBuffers();
       }
       {
         std::lock_guard<std::mutex> lock(mutex);
@@ -166,16 +151,8 @@ namespace ospray {
     void GLFWindow::run() 
     { 
       while (!glfwWindowShouldClose(window)) {
-        // {
-          // std::lock_guard<std::mutex> lock(mutex);
-          // glfwMakeContextCurrent(window);
-          display();
-          // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-          // if (leftEye) {
-          //   glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
-          // }
-        // }
-        /* draw the display here ... */
+        display();
+        
         glfwSwapBuffers(window);
         glfwPollEvents();
         usleep(1000);

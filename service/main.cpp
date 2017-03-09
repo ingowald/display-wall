@@ -62,9 +62,22 @@ namespace ospray {
       MPI::init(ac,av);
       MPI::Group world(MPI_COMM_WORLD);
 
+
+      if (!glfwInit()) {
+        fprintf(stderr, "Failed to initialize GLFW\n");
+        exit(EXIT_FAILURE);
+      }
+// glfwWindowHint(GLFW_SAMPLES, 4); // anti aliasing
+// glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // openGL major version to be 3
+// glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0); // minor set to 3, which makes the version 3.3
+// glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // for MAC OS only
+// glfwWindowHint(GLFW_OPENGL_COMPAT_PROFILE, GLFW_OPENGL_CORE_PROFILE); //avoid using old openGL
+
+
       // default settings
-      bool hasHeadNode = false;
-      bool doStereo    = false;
+      bool hasHeadNode  = false;
+      bool doStereo     = false;
+      bool doFullScreen = false;
       WallConfig::DisplayArrangement arrangement = WallConfig::Arrangement_xy;
       vec2f relativeBezelWidth(0.f);
       vec2i windowSize(320,240);
@@ -91,6 +104,9 @@ namespace ospray {
           windowSize.x = atoi(av[++i]);
           assert(i+1<ac);
           windowSize.y = atoi(av[++i]);
+        } else if (arg == "--full-screen" || arg == "-fs") {
+          windowSize = vec2i(-1);
+          doFullScreen = true;
         } else if (arg == "--bezel" || arg == "-b") {
           if (i+2 >= ac) {
             printf("format for --bezel|-b argument is '-b <x> <y>'\n");
@@ -121,37 +137,12 @@ namespace ospray {
       char title[1000];
       sprintf(title,"display (%i,%i)",displayID.x,displayID.y);
       
-      /*
-      if (world.rank == 2) {
-        setenv("DISPLAY", ":0.0", 1);
-      }
-      
-      else if (world.rank == 3) {
-        setenv("DISPLAY", ":0.0", 1);
-      }
-      
-      else if (world.rank == 0) {
-        setenv("DISPLAY", ":0.1", 1);
-      }
-      
-      else if (world.rank == 1) {
-        setenv("DISPLAY", ":0.1", 1);
-      }
-      
-      else {
-        setenv("DISPLAY", ":0", 1);
-      }
-      
-      
-      printf("Rank %d, display (%d, %d), host %s\n", world.rank, displayID.x, displayID.y, world.name);
-      
-      //exit(1);
-      */
-      
-      // glfInit(&ac, (char **) av);
-      
-      bool doFullScreen = false;
-      
+
+      if (doFullScreen)
+        windowSize = GLFWindow::getScreenSize();
+      PING;
+      PRINT(windowSize);
+
       GLFWindow *glfWindow = NULL;
       
       WallConfig wallConfig(numDisplays,windowSize,
@@ -179,7 +170,6 @@ namespace ospray {
 
       if (hasHeadNode && world.rank == 0) {
         /* no window on head node */
-        throw std::runtime_error("should never reach this ...");
       } else {
         glfWindow->run();
       }

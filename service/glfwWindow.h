@@ -43,7 +43,15 @@ namespace ospray {
       bool doesStereo() const;
       void run();
       void create();
-      
+
+      static vec2i getScreenSize() 
+      {
+        const GLFWvidmode* mode = glfwGetVideoMode(glfwGetPrimaryMonitor());
+        PRINT(mode->width);
+        PRINT(mode->height);
+        return vec2i(mode->width,mode->height);
+      }
+
     private:
       const uint32_t *leftEye;
       const uint32_t *rightEye;
