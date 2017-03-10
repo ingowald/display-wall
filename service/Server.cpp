@@ -132,6 +132,8 @@ namespace ospray {
         
 
       /* accept / wait for outside connection on this port */
+      PING;
+      std::cout << "ACCEPTING" << std::endl;
       MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,outwardFacingGroup.comm,&outside));
       if (outwardFacingGroup.rank == 0) {
         printf("communication established...\n");

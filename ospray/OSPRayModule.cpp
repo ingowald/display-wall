@@ -149,12 +149,16 @@ namespace ospray {
       {
         std::string streamName = getParamString("streamName","");
         std::cout << "#osp:dw: trying to establish connection to display wall service at MPI port " << streamName << std::endl;
+
+        PING;
+        PRINT(streamName);
         client = new dw::Client(mpi::worker.comm,streamName);
+        PING;
       }
 
       //! \brief create an instance of this pixel op
       virtual ospray::PixelOp::Instance *createInstance(FrameBuffer *fb, 
-                                                        PixelOp::Instance *prev)
+                                                        PixelOp::Instance *prev) override
       {
         return new Instance(fb,prev,client);
       }

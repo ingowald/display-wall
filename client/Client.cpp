@@ -93,7 +93,6 @@ namespace ospray {
       MPI_Comm newComm;
       MPI_CALL(Comm_connect(portName.c_str(),MPI_INFO_NULL,0,me.comm,&newComm));
       this->displayGroup = MPI::Group(newComm);
-      
       if (me.rank == 0)
         cout << "connection established..." << endl;
       me.barrier();
