@@ -238,9 +238,12 @@ namespace ospray {
         // =======================================================
         // TILE RECEIVER
         // =======================================================
+          PING;
+          sleep(3);
         MPI::Group incomingTiles
           = waitForConnection(displayGroup,desiredInfoPortNum);
         processIncomingTiles(incomingTiles);
+          PING;
       }
     }
     
@@ -281,7 +284,9 @@ namespace ospray {
       // ospray::dw::displayCallback = displayCallback;
       // ospray::dw::objectForCallback = objectForCallback;
       commThread = new std::thread([=]() {
+          PING;
           setupCommunications(wallConfig,hasHeadNode,me,desiredInfoPortNum);
+          PING;
         });
       
       if (hasHeadNode && me.rank == 0) {

@@ -43,16 +43,17 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
+      PING; PRINT(this);
       create();
     }
 
 
     void GLFWindow::create()
     {
-      if (singleton != NULL)
-        throw std::runtime_error("can only have one active GLFWindow right now ....");
-      else 
-        singleton = this;
+      // if (singleton != NULL)
+      //   throw std::runtime_error("can only have one active GLFWindow right now ....");
+      // else 
+      //   singleton = this;
      
 
       glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
@@ -76,7 +77,14 @@ namespace ospray {
         window = glfwCreateWindow(size.x,size.y,title.c_str(),
                                   NULL,NULL);
       }
+      PING; 
+      PRINT(this);
+      PRINT(&this->window);
+      PRINT(window);
       glfwMakeContextCurrent(window);
+      PING;
+      PRINT(&this->window);
+      PRINT(window);
       //      gl3wInit();
       // glfwShowWindow(window);
     }
@@ -160,6 +168,13 @@ namespace ospray {
     
     void GLFWindow::run() 
     { 
+      // PING; 
+      // PRINT(this);
+      // // PRINT(singleton);
+      // PRINT(&this->window);
+      // PRINT(this->window);
+      // PRINT(window);
+
       while (!glfwWindowShouldClose(window)) {
         
         glfwPollEvents();
@@ -177,7 +192,7 @@ namespace ospray {
       }
     }
     
-    GLFWindow *GLFWindow::singleton = NULL;
+    // GLFWindow *GLFWindow::singleton = NULL;
     
   } // ::ospray::dw
 } // ::ospray

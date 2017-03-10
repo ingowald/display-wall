@@ -36,6 +36,18 @@ namespace ospray {
     {
       GLFWindow(const vec2i &size, const vec2i &position, const std::string &title,
                  bool doFullScreen, bool stereo=false);
+
+      virtual ~GLFWindow()
+      {
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        PING;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+        std::cout << "%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%" << std::endl;
+      }
+
       void setFrameBuffer(const uint32_t *leftEye,
                           const uint32_t *rightEye);
       void display(); 
@@ -50,22 +62,23 @@ namespace ospray {
         return vec2i(mode->width,mode->height);
       }
 
-    private:
+    // private:
       const uint32_t *leftEye;
       const uint32_t *rightEye;
+
+      GLFWwindow* window;
 
       std::mutex mutex;
       std::condition_variable newFrameAvail;
       std::condition_variable newFrameDisplayed;
 
-      GLFWwindow* window { nullptr };
       vec2i size, position;
       std::string title;
       bool stereo;
       int receivedFrameID;
       int displayedFrameID;
-      static GLFWindow *singleton;
       bool doFullScreen;
+      // static GLFWindow *singleton;
     };
     
   } // ::ospray::dw
