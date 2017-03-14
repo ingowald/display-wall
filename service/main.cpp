@@ -203,6 +203,11 @@ namespace ospray {
         assert(false);
       } else {
         assert(glfWindow);
+        printf("now _running_ the glfwindow\n");
+        fflush(0); 
+        PRINT(glfWindow);
+        PRINT(glfWindow->handle);
+        fflush(0);
         glfWindow->run();
       }
       return 0;

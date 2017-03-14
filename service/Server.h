@@ -95,6 +95,8 @@ namespace ospray {
           receive/display buffers, respectively */
       uint32_t *recv_l, *recv_r, *disp_l, *disp_r;
       /*! @} */
+
+      int desiredInfoPortNum;
     };
 
     void startDisplayWallService(const MPI_Comm comm,

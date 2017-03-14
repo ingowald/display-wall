@@ -43,7 +43,9 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
+      PING; PRINT(this); PRINT(&handle); PRINT(handle);
       create();
+      PING; PRINT(this); PRINT(&handle); PRINT(handle);
     }
 
 
@@ -70,13 +72,16 @@ namespace ospray {
         glfwWindowHint(GLFW_BLUE_BITS, mode->blueBits);
         glfwWindowHint(GLFW_REFRESH_RATE, mode->refreshRate);
         
-        window = glfwCreateWindow(mode->width, mode->height,
+        this->handle = glfwCreateWindow(mode->width, mode->height,
                                   title.c_str(), monitor, nullptr);
       } else {
-        window = glfwCreateWindow(size.x,size.y,title.c_str(),
+        this->handle = glfwCreateWindow(size.x,size.y,title.c_str(),
                                   NULL,NULL);
       }
-      glfwMakeContextCurrent(window);
+
+      PING; PRINT(this); PRINT(&handle); PRINT(handle);
+      glfwMakeContextCurrent(this->handle);
+      PING; PRINT(this); PRINT(&handle); PRINT(handle);
     }
 
     void GLFWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
@@ -127,18 +132,28 @@ namespace ospray {
     
     void GLFWindow::run() 
     { 
-      while (!glfwWindowShouldClose(window)) {
+      sleep(5);
+      PING; 
+      PRINT(this); 
+      printf("blubber....\n");fflush(0);
+      PRINT(&this->handle); 
+      PRINT(this->handle); 
+      fflush(0);
+      PRINT(&glfwWindowShouldClose);
+      PING;
+      while (!glfwWindowShouldClose(this->handle)) {
+        PING; PRINT(this); PRINT(this->handle); fflush(0);
         
         glfwPollEvents();
 
         vec2i currentSize(0);
-        glfwGetFramebufferSize(window, &currentSize.x, &currentSize.y);
+        glfwGetFramebufferSize(this->handle, &currentSize.x, &currentSize.y);
 
         glViewport(0, 0, currentSize.x, currentSize.y);
         glClear(GL_COLOR_BUFFER_BIT);
 
         display();
-        glfwSwapBuffers(window);
+        glfwSwapBuffers(this->handle);
 
         usleep(1000);
       }

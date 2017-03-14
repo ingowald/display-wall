@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 #include "Client.h"
-#include "../common/Socket.h"
+#include "ospcommon/Socket.h"
 
 namespace ospray {
   namespace dw {

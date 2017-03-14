@@ -26,7 +26,7 @@ namespace ospray {
       
       const box2i displayRegion = wallConfig.regionOfRank(displayGroup.rank);
 
-#define THREADED_RECV 8
+#define THREADED_RECV 3
         
 #if THREADED_RECV
       std::mutex displayMutex;

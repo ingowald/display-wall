@@ -56,7 +56,6 @@ ADD_LIBRARY(ospray_dw_common
   WallConfig.cpp
   CompressedTile.cpp
   MPI.cpp
-  Socket.cpp
   )
 
 TARGET_LINK_LIBRARIES(ospray_dw_common

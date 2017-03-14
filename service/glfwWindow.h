@@ -66,18 +66,18 @@ namespace ospray {
       const uint32_t *leftEye;
       const uint32_t *rightEye;
 
-      GLFWwindow* window;
+      GLFWwindow *handle { nullptr };
 
       std::mutex mutex;
       std::condition_variable newFrameAvail;
       std::condition_variable newFrameDisplayed;
 
       vec2i size, position;
-      std::string title;
       bool stereo;
       int receivedFrameID;
       int displayedFrameID;
       bool doFullScreen;
+      std::string title;
       // static GLFWindow *singleton;
     };
     
