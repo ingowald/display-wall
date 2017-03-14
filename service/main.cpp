@@ -108,6 +108,9 @@ namespace ospray {
           else if (arrangementName == "xY")
             /* y is inverted */
             arrangement = WallConfig::Arrangement_xY;
+          else if (arrangementName == "Yx")
+            /* y minor, y is inverted */
+            arrangement = WallConfig::Arrangement_Yx;
           else 
             throw std::runtime_error("arrangement type not implemented");
         } else if (arg == "--height" || arg == "-h") {
@@ -176,8 +179,8 @@ namespace ospray {
 
       for (int i=0;i<world.size;i++) {
         if (i == world.rank) {
-          gethostname(name,1000);
-          printf("rank %i running on host %s\n",world.rank,name);
+//           gethostname(name,1000);
+//           printf("rank %i running on host %s\n",world.rank,name);
           fflush(0);
           usleep(10000);
         }

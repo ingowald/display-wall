@@ -112,8 +112,8 @@ namespace ospray {
     {
       MPI_Comm outside;
       outwardFacingGroup.barrier();
-      printf("outward facing rank %i/%i waiting for outside connection\n",
-             outwardFacingGroup.rank,outwardFacingGroup.size);
+//       printf("outward facing rank %i/%i waiting for outside connection\n",
+//              outwardFacingGroup.rank,outwardFacingGroup.size);
       outwardFacingGroup.barrier();
 
       /* open a port, and publish its name */
@@ -211,10 +211,10 @@ namespace ospray {
       } else {
         displayGroup = world.dup();
       }
-      printf("world rank %i/%i: dispatcher rank %i/%i, display rank %i/%i\n",
-             world.rank,world.size,
-             dispatchGroup.rank,dispatchGroup.size,
-             displayGroup.rank,displayGroup.size);
+//       printf("world rank %i/%i: dispatcher rank %i/%i, display rank %i/%i\n",
+//              world.rank,world.size,
+//              dispatchGroup.rank,dispatchGroup.size,
+//              displayGroup.rank,displayGroup.size);
       MPI_CALL(Barrier(world.comm));
 
       if (hasHeadNode) {
@@ -236,7 +236,6 @@ namespace ospray {
         // =======================================================
         // TILE RECEIVER
         // =======================================================
-          PING;
           sleep(3);
         MPI::Group incomingTiles
           = waitForConnection(displayGroup,desiredInfoPortNum);

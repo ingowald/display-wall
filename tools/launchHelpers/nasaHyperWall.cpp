@@ -35,7 +35,7 @@ namespace ospray {
 
     /* numbering of displays is x major, y minor, y reverse (up to
        down), x normal (left to right)  */
-    const std::string arrangement = "xY";
+    const std::string arrangement = "Yx";
     /*! @} */
 
     /*! for nasa hyperwall */
@@ -90,7 +90,7 @@ namespace ospray {
           fprintf(displayNodeList,"%s\n",nodeName.c_str());
           
           if (pbsNames != "") pbsNames = pbsNames+"+";
-          pbsNames = pbsNames+"1:"+nodeName;
+          pbsNames = pbsNames+"1:host="+nodeName;
         }
       }
 
@@ -98,9 +98,12 @@ namespace ospray {
       fclose(renderNodeList);
     
       std::stringstream pbsCommand;
-      pbsCommand << "qsub -I -V select=" << pbsNames;
+      pbsCommand << "qsub -I -V -l select=" << pbsNames
+                 << ":model=hw3"
+                 << " -l walltime=02:00:00";
+
       std::cout << "# pbs command to aquire displays: " << std::endl;
-      std::cout << pbsCommand.str() << std::endl << std::endl;
+      std::cout << "  " << pbsCommand.str() << std::endl << std::endl;
       std::cout << "# mpirun to start the displays:" << std::endl;
       std::cout << "  mpirun"
                 << " -genv DISPLAY :0 "
@@ -110,6 +113,8 @@ namespace ospray {
                 << " ospDisplayWald"
                 << " -w " << displayRange.size().x
                 << " -h " << displayRange.size().y
+                << " -b .08 .08" // bezel: 8% of display width... or so abouts
+                << " -a Yx"      // arrangement: y minor, y downwards
                 << " -nhn -fs"
                 << std::endl << std::endl;;
 

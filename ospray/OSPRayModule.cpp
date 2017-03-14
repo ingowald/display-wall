@@ -150,10 +150,7 @@ namespace ospray {
         std::string streamName = getParamString("streamName","");
         std::cout << "#osp:dw: trying to establish connection to display wall service at MPI port " << streamName << std::endl;
 
-        PING;
-        PRINT(streamName);
         client = new dw::Client(mpi::worker.comm,streamName);
-        PING;
       }
 
       //! \brief create an instance of this pixel op
@@ -176,7 +173,7 @@ namespace ospray {
 
     extern "C" void ospray_init_module_displayWald()
     {
-      printf("loading the 'displayWald' module...\n");
+      //      printf("loading the 'displayWald' module...\n");
     }
 
     OSP_REGISTER_PIXEL_OP(DisplayWaldPixelOp,display_wald);

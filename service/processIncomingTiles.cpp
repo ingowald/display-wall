@@ -21,8 +21,8 @@ namespace ospray {
     void Server::processIncomingTiles(MPI::Group &outside)
     {
       allocateFrameBuffers();
-      printf("tile receiver %i/%i: frame buffer(s) allocated; now receiving tiles\n",
-             displayGroup.rank,displayGroup.size);
+//       printf("tile receiver %i/%i: frame buffer(s) allocated; now receiving tiles\n",
+//              displayGroup.rank,displayGroup.size);
       
       const box2i displayRegion = wallConfig.regionOfRank(displayGroup.rank);
 

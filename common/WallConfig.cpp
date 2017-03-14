@@ -44,6 +44,9 @@ namespace ospray {
     vec2i  WallConfig::displayIDofRank(int rank) const
     {
       switch (displayArrangement) {
+      case Arrangement_Yx:
+        return vec2i(rank / numDisplays.y,
+                     numDisplays.y-1-(rank % numDisplays.y));
       case Arrangement_xy:
         return vec2i(rank % numDisplays.x,rank / numDisplays.x);
       case Arrangement_xY:
@@ -56,6 +59,8 @@ namespace ospray {
     int    WallConfig::rankOfDisplay(const vec2i &displayID) const 
     {
       switch (displayArrangement) {
+      case Arrangement_Yx:
+        return (numDisplays.y-1-displayID.y)+numDisplays.y*displayID.x;
       case Arrangement_xy:
         return displayID.x+numDisplays.x*displayID.y;
       case Arrangement_xY:
