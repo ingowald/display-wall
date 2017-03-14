@@ -28,24 +28,14 @@ INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/apps/exampleViewer/common/glfw/include
 
 ADD_EXECUTABLE(ospDisplayWald
   main.cpp
-  #  GlutWindow.cpp
   glfwWindow.cpp
   Dispatcher.cpp
   processIncomingTiles.cpp
   Server.cpp
   )
 
-ADD_EXECUTABLE(ospLaunchDisplayWald
-  ../common/tinyxml/tinyxml.cpp
-  ../common/tinyxml/tinystr.cpp
-  ../common/tinyxml/tinyxmlerror.cpp
-  ../common/tinyxml/tinyxmlparser.cpp
-  launch.cpp
-  )
-
 TARGET_LINK_LIBRARIES(ospDisplayWald
   ospray_dw_common
-#  ${GLUT_LIBRARIES}
   glfw
   ${OPENGL_LIBRARIES}
   )
