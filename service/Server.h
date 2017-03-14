@@ -53,10 +53,11 @@ namespace ospray {
       void processIncomingTiles(MPI::Group &outside);
 
       /*! note: this runs in its own thread */
-      void setupCommunications(const WallConfig &wallConfig,
-                               bool hasHeadNode,
-                               const MPI::Group &world,
-                               int desiredInfoPortNum);
+      void setupCommunications();
+// const WallConfig &wallConfig,
+//                                bool hasHeadNode,
+//                                const MPI::Group &world,
+//                                int desiredInfoPortNum);
       /*! open an MPI port and wait for the client(s) to connect to this
         port after this function terminates, all outward facing procs
         (either the head node, or all display nodes if no head node is
@@ -70,7 +71,7 @@ namespace ospray {
 
       static Server *singleton;
 
-      std::thread *commThread;
+      static std::thread commThread;
       /*! group that contails ALL display service procs, including the
           head node (if applicable) */
       const MPI::Group me;

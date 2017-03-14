@@ -47,7 +47,7 @@ namespace ospray {
         MPI_Comm comm;
         int rank, size;
         int isInter;
-        char name[200];
+        // char name[200];
       };
     };
 

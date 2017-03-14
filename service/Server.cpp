@@ -36,6 +36,8 @@ namespace ospray {
     std::mutex commThreadIsReady;
     std::mutex canStartProcessing;
 
+    std::thread Server::commThread;
+
     /*! create a port at a well-defined port ID, and use this to serve
         - via a simple TCP/IP port - the name of the MPI port, the
         parameters of the display wall, etc. Note this (should) be
@@ -181,12 +183,18 @@ namespace ospray {
                        const MPI::Group &displays,
                        const WallConfig &wallConfig);
 
+          // setupCommunications(this->wallConfig,
+          //                     this->hasHeadNode,
+          //                     this->me,
+          //                     this->desiredInfoPortNum);
     /*! note: this runs in its own thread */
-    void Server::setupCommunications(const WallConfig &wallConfig,
-                                     bool hasHeadNode,
-                                     const MPI::Group &world,
-                                     int desiredInfoPortNum)
+    void Server::setupCommunications()
+// const WallConfig &wallConfig,
+//                                      bool hasHeadNode,
+//                                      const MPI::Group &world,
+//                                      int desiredInfoPortNum)
     {
+      const MPI::Group &world = me;
       // =======================================================
       /* create inter- and intra-comms to communicate between displays
          and, if applicable, the dispathcer running ont he head
@@ -272,7 +280,7 @@ namespace ospray {
         hasHeadNode(hasHeadNode),
         displayCallback(displayCallback),
         objectForCallback(objectForCallback),
-        commThread(NULL),
+        // commThread(NULL),
         numWrittenThisFrame(0),
         numExpectedThisFrame(wallConfig.displayPixelCount()),
         recv_l(NULL),
@@ -283,23 +291,19 @@ namespace ospray {
     {
       commThreadIsReady.lock();
       canStartProcessing.lock();
-      printf("creating thread ...\n");fflush(0);
-      commThread = new std::thread([this]() {
-          setupCommunications(this->wallConfig,
-                              this->hasHeadNode,
-                              this->me,
-                              this->desiredInfoPortNum);
+#if 1
+      commThread = std::thread([this]() {
+           this->setupCommunications();
         });
       commThreadIsReady.lock();
-      
+#endif
+ 
       if (hasHeadNode && me.rank == 0) {
         /* if this is the head node we wait here until everything is
            done; this prevents the comm thread from dying when we
            return to main - unlike other ranks the head node will NOT
            open a window and enter a windowing loop.... */
-        commThread->join();
-        printf("deleting comm thread...\n");
-        delete commThread;
+        commThread.join();
       }
 
       canStartProcessing.unlock();

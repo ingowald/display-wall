@@ -55,8 +55,9 @@ namespace ospray {
         } else {
           MPI_CALL(Comm_rank(comm,&rank));
           MPI_CALL(Comm_size(comm,&size));
-          int len;
-          MPI_CALL(Get_processor_name(name,&len));
+          // int len;
+          // MPI_CALL(Get_processor_name(name,&len));
+          // PRINT(len);
         }
       }
     }

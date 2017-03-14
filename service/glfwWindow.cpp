@@ -43,20 +43,12 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
-      PING; PRINT(this); PRINT(&handle); PRINT(handle);
       create();
-      PING; PRINT(this); PRINT(&handle); PRINT(handle);
     }
 
 
     void GLFWindow::create()
     {
-      // if (singleton != NULL)
-      //   throw std::runtime_error("can only have one active GLFWindow right now ....");
-      // else 
-      //   singleton = this;
-     
-
       glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 2);
       glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
       
@@ -79,9 +71,7 @@ namespace ospray {
                                   NULL,NULL);
       }
 
-      PING; PRINT(this); PRINT(&handle); PRINT(handle);
       glfwMakeContextCurrent(this->handle);
-      PING; PRINT(this); PRINT(&handle); PRINT(handle);
     }
 
     void GLFWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
@@ -132,17 +122,7 @@ namespace ospray {
     
     void GLFWindow::run() 
     { 
-      sleep(5);
-      PING; 
-      PRINT(this); 
-      printf("blubber....\n");fflush(0);
-      PRINT(&this->handle); 
-      PRINT(this->handle); 
-      fflush(0);
-      PRINT(&glfwWindowShouldClose);
-      PING;
       while (!glfwWindowShouldClose(this->handle)) {
-        PING; PRINT(this); PRINT(this->handle); fflush(0);
         
         glfwPollEvents();
 

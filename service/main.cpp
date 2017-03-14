@@ -175,17 +175,15 @@ namespace ospray {
         }
       }
       world.barrier();
-      char name[1000];
+      // char name[1000];
 
-      for (int i=0;i<world.size;i++) {
-        if (i == world.rank) {
-//           gethostname(name,1000);
-//           printf("rank %i running on host %s\n",world.rank,name);
-          fflush(0);
-          usleep(10000);
-        }
-        world.barrier();
-      }
+      // for (int i=0;i<world.size;i++) {
+      //   if (i == world.rank) {
+      //     fflush(0);
+      //     usleep(1000);
+      //   }
+      //   world.barrier();
+      // }
 
       GLFWindow *glfWindow = nullptr;
       if (hasHeadNode && world.rank == 0) {
@@ -197,17 +195,12 @@ namespace ospray {
 
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
                               displayNewFrame,glfWindow,desiredInfoPortNum);
-
+      
       if (hasHeadNode && world.rank == 0) {
         /* no window on head node - should never have returend from setupComms*/
         assert(false);
       } else {
         assert(glfWindow);
-        printf("now _running_ the glfwindow\n");
-        fflush(0); 
-        PRINT(glfWindow);
-        PRINT(glfWindow->handle);
-        fflush(0);
         glfWindow->run();
       }
       return 0;
