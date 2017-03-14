@@ -50,5 +50,11 @@ IF (OSPRAY_MODULE_DISPLAY_WALD)
 
   SET(DISPLAY_WALD_DIR  "${CMAKE_CURRENT_SOURCE_DIR}" CACHE INTERNAL "" FORCE)
 
+  ADD_EXECUTABLE(launch_nasa
+    tools/launchHelpers/nasaHyperWall.cpp
+    )
+  TARGET_LINK_LIBRARIES(launch_nasa
+    ospray
+    )
 
 ENDIF()
