@@ -174,7 +174,7 @@ namespace ospray {
         world.barrier();
       }
 
-      GLFWindow *glfWindow = NULL;
+      GLFWindow *glfWindow = nullptr;
       if (hasHeadNode && world.rank == 0) {
         cout << "#osp:dw: running a dedicated headnode on rank 0; "
              << "not creating a window there" << endl;
@@ -182,26 +182,16 @@ namespace ospray {
         glfWindow = new GLFWindow(windowSize,windowPosition,title,doFullScreen,doStereo);
       }
 
-      PING;
-      PRINT(glfWindow);
-      PRINT(glfWindow->window);
       startDisplayWallService(world.comm,wallConfig,hasHeadNode,
                               displayNewFrame,glfWindow,desiredInfoPortNum);
-      // PING;
-      // PRINT(glfWindow);
-      // PRINT(glfWindow->window);
-      
-      sleep(1);
-      // PING;
-      // PRINT(glfWindow);
-      // PRINT(glfWindow->window);
 
       if (hasHeadNode && world.rank == 0) {
-        /* no window on head node */
+        /* no window on head node - should never have returend from setupComms*/
+        assert(false);
       } else {
+        assert(glfWindow);
         glfWindow->run();
       }
-      // commThread.join();
       return 0;
     }
     

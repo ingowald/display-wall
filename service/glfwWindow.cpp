@@ -43,7 +43,6 @@ namespace ospray {
         displayedFrameID(-1),
         doFullScreen(doFullScreen)
     {
-      PING; PRINT(this);
       create();
     }
 
@@ -77,16 +76,7 @@ namespace ospray {
         window = glfwCreateWindow(size.x,size.y,title.c_str(),
                                   NULL,NULL);
       }
-      PING; 
-      PRINT(this);
-      PRINT(&this->window);
-      PRINT(window);
       glfwMakeContextCurrent(window);
-      PING;
-      PRINT(&this->window);
-      PRINT(window);
-      //      gl3wInit();
-      // glfwShowWindow(window);
     }
 
     void GLFWindow::setFrameBuffer(const uint32_t *leftEye, const uint32 *rightEye)
@@ -98,16 +88,6 @@ namespace ospray {
         receivedFrameID++;
         newFrameAvail.notify_one();
       }
-// #if 0
-//       {
-//         std::unique_lock<std::mutex> lock(mutex);
-//         // cout << "waiting for display (" << displayedFrameID << ")" << endl;
-//         newFrameDisplayed.wait(lock, [&]{
-//             // cout << "waiting for display (" << displayedFrameID << ")" << endl;
-//             return displayedFrameID==receivedFrameID;
-//           });
-//       }
-// #endif
     }
 
     void GLFWindow::display() 
@@ -119,28 +99,7 @@ namespace ospray {
 
 
         if (!leftEye) {
-          // printf("no frame buffer set, yet\n");
-//         } else if (stereo) {
-//           // with stereo drawing ...
-// #if DBG_FAKE_STEREO
-//           static int frameID = 0;
-//           if ((++frameID) % 2) {
-//             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//             glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
-//           } else {
-//             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//             glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
-//           }
-// #else
-//           glDrawBuffer(GL_BACK_LEFT);
-//           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, leftEye);
-        
-//           assert(rightEye != NULL);
-//           glDrawBuffer(GL_BACK_RIGHT); 
-//           glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-//           glDrawPixels(size.x, size.y, GL_RGBA, GL_UNSIGNED_BYTE, rightEye);
-// #endif
+          /* invalid ... */
         } else {
           assert(rightEye == NULL);
           // no stereo
@@ -168,13 +127,6 @@ namespace ospray {
     
     void GLFWindow::run() 
     { 
-      // PING; 
-      // PRINT(this);
-      // // PRINT(singleton);
-      // PRINT(&this->window);
-      // PRINT(this->window);
-      // PRINT(window);
-
       while (!glfwWindowShouldClose(window)) {
         
         glfwPollEvents();
@@ -191,8 +143,6 @@ namespace ospray {
         usleep(1000);
       }
     }
-    
-    // GLFWindow *GLFWindow::singleton = NULL;
     
   } // ::ospray::dw
 } // ::ospray

@@ -132,8 +132,6 @@ namespace ospray {
         
 
       /* accept / wait for outside connection on this port */
-      PING;
-      std::cout << "ACCEPTING" << std::endl;
       MPI_CALL(Comm_accept(portName,MPI_INFO_NULL,0,outwardFacingGroup.comm,&outside));
       if (outwardFacingGroup.rank == 0) {
         printf("communication established...\n");
@@ -279,14 +277,8 @@ namespace ospray {
         disp_l(NULL),
         disp_r(NULL)
     {
-      // MPI::Group world(comm);
-      // MPI::Group me = world.dup();
-      // ospray::dw::displayCallback = displayCallback;
-      // ospray::dw::objectForCallback = objectForCallback;
       commThread = new std::thread([=]() {
-          PING;
           setupCommunications(wallConfig,hasHeadNode,me,desiredInfoPortNum);
-          PING;
         });
       
       if (hasHeadNode && me.rank == 0) {
