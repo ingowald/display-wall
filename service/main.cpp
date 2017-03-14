@@ -100,6 +100,16 @@ namespace ospray {
         } else if (arg == "--width" || arg == "-w") {
           assert(i+1<ac);
           numDisplays.x = atoi(av[++i]);
+        } else if (arg == "--arrangement" || arg == "-a") {
+          assert(i+1<ac);
+          std::string arrangementName = av[++i];
+          if (arrangementName == "xy")
+            arrangement = WallConfig::Arrangement_xy;
+          else if (arrangementName == "xY")
+            /* y is inverted */
+            arrangement = WallConfig::Arrangement_xY;
+          else 
+            throw std::runtime_error("arrangement type not implemented");
         } else if (arg == "--height" || arg == "-h") {
           assert(i+1<ac);
           numDisplays.y = atoi(av[++i]);
@@ -139,7 +149,7 @@ namespace ospray {
       const vec2i displayID(displayNo % numDisplays.x, displayNo / numDisplays.x);
 
       char title[1000];
-      sprintf(title,"display (%i,%i)",displayID.x,displayID.y);
+      sprintf(title,"rank %i/%i, display (%i,%i)",world.rank,world.size,displayID.x,displayID.y);
       
 
       if (doFullScreen)

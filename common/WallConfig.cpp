@@ -36,15 +36,41 @@ namespace ospray {
         displayArrangement(displayArrangement),
         stereo(stereo)
     {
-      if (displayArrangement != Arrangement_xy)
-        throw std::runtime_error("non-default arrangments of displays not yet implemented");
+      // if (displayArrangement != Arrangement_xy)
+      //   throw std::runtime_error("non-default arrangments of displays not yet implemented");
     }
     
     
     vec2i  WallConfig::displayIDofRank(int rank) const
     {
-      return vec2i(rank % numDisplays.x,rank / numDisplays.x);
+      switch (displayArrangement) {
+      case Arrangement_xy:
+        return vec2i(rank % numDisplays.x,rank / numDisplays.x);
+      case Arrangement_xY:
+        return vec2i(rank % numDisplays.x,numDisplays.y-1-(rank / numDisplays.x));
+      default:
+        throw std::runtime_error("display arrangement not implemented ...");
+      }
     }
+
+    int    WallConfig::rankOfDisplay(const vec2i &displayID) const 
+    {
+      switch (displayArrangement) {
+      case Arrangement_xy:
+        return displayID.x+numDisplays.x*displayID.y;
+      case Arrangement_xY:
+        return displayID.x+numDisplays.x*(numDisplays.y-1-displayID.y);
+      default:
+        throw std::runtime_error("display arrangement not implemented ...");
+      }
+    }
+    
+
+    box2i  WallConfig::regionOfRank(int rank) const
+    { 
+      return regionOfDisplay(displayIDofRank(rank)); 
+    }
+
 
 
     /*! returns range of displays that are affected by the given
@@ -92,9 +118,6 @@ namespace ospray {
       // vec2i hi
       // = divRoundUp(pixelRegion.upper,pixelsPerDisplay+bezelPixelsPerDisplay());
       if (hi.x > numDisplays.x || hi.y > numDisplays.y) {
-        PING; 
-        PRINT(pixelRegion);
-        PRINT(totalPixels());
         throw std::runtime_error("invalid region in 'affectedDispalys()')");
       }
       return box2i(lo,hi);
@@ -110,16 +133,6 @@ namespace ospray {
       return box2i(lo, lo + pixelsPerDisplay);
     }
 
-    box2i  WallConfig::regionOfRank(int rank) const
-    { 
-      return regionOfDisplay(displayIDofRank(rank)); 
-    }
-
-    int    WallConfig::rankOfDisplay(const vec2i &displayID) const 
-    {
-      return displayID.x+numDisplays.x*displayID.y;
-    }
-    
     /*! returns the total number of displays across x and y dimensions */
     size_t WallConfig::displayCount() const
     { 
