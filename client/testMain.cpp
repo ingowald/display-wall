@@ -45,7 +45,7 @@ namespace ospray {
       // vec2i tileSize(160,10);
       vec2i numTiles = divRoundUp(totalPixels,tileSize);
       size_t tileCount = numTiles.product();
-      parallel_for(tileCount,[&](int tileID){
+      tasking::parallel_for(tileCount,[&](int tileID){
           if ((tileID % me.size) != me.rank)
             return;
 

@@ -3,9 +3,6 @@
 #include "../common/CompressedTile.h"
 #include "ospcommon/tasking/parallel_for.h"
 #include <mutex>
-#ifdef OSPRAY_TASKING_TBB
-# include <tbb/task_scheduler_init.h>
-#endif
 
 namespace ospray {
   namespace dw {
@@ -30,10 +27,7 @@ namespace ospray {
         
 #if THREADED_RECV
       std::mutex displayMutex;
-# ifdef OSPRAY_TASKING_TBB
-      tbb::task_scheduler_init tbb_init;
-# endif
-      parallel_for(THREADED_RECV,[&](int) {
+      tasking::parallel_for(THREADED_RECV,[&](int) {
 #endif
           void *decompressor = CompressedTile::createDecompressor();
           while (1) {
