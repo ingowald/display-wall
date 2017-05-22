@@ -150,7 +150,7 @@ namespace ospray {
         std::string streamName = getParamString("streamName","");
         std::cout << "#osp:dw: trying to establish connection to display wall service at MPI port " << streamName << std::endl;
 
-        client = new dw::Client(mpi::worker.comm,streamName);
+        client = new dw::Client(mpicommon::worker.comm,streamName);
       }
 
       //! \brief create an instance of this pixel op

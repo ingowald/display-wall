@@ -1,5 +1,5 @@
 /* 
-Copyright (c) 2016 Ingo Wald
+Copyright (c) 2016-17 Ingo Wald
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,6 +20,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include "mpiCommon/MPICommon.h"
 #include "Client.h"
 #include "ospcommon/tasking/parallel_for.h"
 // std
@@ -45,7 +46,7 @@ namespace ospray {
       // vec2i tileSize(160,10);
       vec2i numTiles = divRoundUp(totalPixels,tileSize);
       size_t tileCount = numTiles.product();
-      parallel_for(tileCount,[&](int tileID){
+      tasking::parallel_for(tileCount,[&](int tileID){
           if ((tileID % me.size) != me.rank)
             return;
 

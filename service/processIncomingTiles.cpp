@@ -33,7 +33,7 @@ namespace ospray {
 # ifdef OSPRAY_TASKING_TBB
       tbb::task_scheduler_init tbb_init;
 # endif
-      parallel_for(THREADED_RECV,[&](int) {
+      tasking::parallel_for(THREADED_RECV,[&](int) {
 #endif
           void *decompressor = CompressedTile::createDecompressor();
           while (1) {

@@ -22,7 +22,7 @@ SOFTWARE.
 
 #include "Server.h"
 #include "../common/CompressedTile.h"
-#include "ospcommon/Socket.h"
+#include "ospcommon/networking/Socket.h"
 
 namespace ospray {
   namespace dw {

@@ -1,5 +1,5 @@
 /* 
-Copyright (c) 2016 Ingo Wald
+Copyright (c) 2016-17 Ingo Wald
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -21,7 +21,7 @@ SOFTWARE.
 */
 
 #include "Client.h"
-#include "ospcommon/Socket.h"
+#include "ospcommon/networking/Socket.h"
 
 namespace ospray {
   namespace dw {
